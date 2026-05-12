@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id            String         @id @default(uuid())
+  name          String
+  createdAt     DateTime       @default(now())
+  conversations Conversation[]
+  contacts      Contact[]
+}
+
+model Contact {
+  id            String         @id @default(uuid())
+  tenantId      String
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  name          String
+  email         String?
+  phone         String?
+  location      String?
+  createdAt     DateTime       @default(now())
+  channels      ContactChannel[]
+  conversations Conversation[]
+}
+
+model ContactChannel {
+  id         String   @id @default(uuid())
+  contactId  String
+  contact    Contact  @relation(fields: [contactId], references: [id])
+  channel    Channel
+  externalId String   // phone number, @handle, fb_id
+  linked     Boolean  @default(true)
+}
+
+model Conversation {
+  id          String    @id @default(uuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  contactId   String
+  contact     Contact   @relation(fields: [contactId], references: [id])
+  channel     Channel
+  status      Status    @default(NEW)
+  priority    Priority  @default(NORMAL)
+  assignedTo  String?
+  tags        String[]
+  lastMessage String?
+  lastMsgAt   DateTime  @default(now())
+  unreadCount Int       @default(0)
+  createdAt   DateTime  @default(now())
+  messages    Message[]
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  sender         SenderType
+  content        String
+  channel        Channel
+  isBot          Boolean      @default(false)
+  isInternal     Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+}
+
+enum Channel {
+  WHATSAPP
+  INSTAGRAM
+  MESSENGER
+}
+
+enum Status {
+  NEW
+  OPEN
+  PENDING
+  RESOLVED
+}
+
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+}
+
+enum SenderType {
+  CONTACT
+  AGENT
+  BOT
+  SYSTEM
+}
