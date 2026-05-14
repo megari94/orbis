@@ -8,18 +8,23 @@ import MessageList from './components/Chat/MessageList';
 import ComposeBox from './components/Chat/ComposeBox';
 import InfoPanel from './components/InfoPanel/InfoPanel';
 import useStore from './store/useStore';
+import './App.css';
 
 export default function App() {
-  const { fetchConversations, activeConversation } = useStore();
+  const { conversations, activeConversation, selectConversation } = useStore();
 
-  useEffect(() => { fetchConversations(); }, []);
+  useEffect(() => {
+    if (!activeConversation && conversations.length > 0) {
+      selectConversation(conversations[0]);
+    }
+  }, [conversations]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#111111', fontFamily: 'DM Sans, sans-serif', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
       <TopNav />
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div className="main">
         <Sidebar />
-        <section style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: '#111111' }}>
+        <section className="chat-area">
           {activeConversation ? (
             <>
               <ChatHeader />
@@ -29,7 +34,7 @@ export default function App() {
               <ComposeBox />
             </>
           ) : (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#777777', fontSize: 14 }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--dim)', fontSize: 14 }}>
               Seleccioná una conversación para empezar
             </div>
           )}
