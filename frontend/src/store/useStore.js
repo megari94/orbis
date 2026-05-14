@@ -152,6 +152,15 @@ const useStore = create((set, get) => ({
     set(s => ({ filter: { ...s.filter, ...filter } }));
     get().fetchConversations();
   },
+
+  // Limpia el store al hacer logout
+  reset: () => set({
+    conversations:      MOCK_CONVERSATIONS,
+    activeConversation: null,
+    messages:           [],
+    filter:             { status: null, channel: null },
+    loading:            false,
+  }),
 }));
 
 export default useStore;
