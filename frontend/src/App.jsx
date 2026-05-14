@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useAuth } from './context/AuthContext';
 import TopNav from './components/TopNav';
 import Sidebar from './components/Sidebar/Sidebar';
 import ChatHeader from './components/Chat/ChatHeader';
@@ -7,11 +8,26 @@ import TagStrip from './components/Chat/TagStrip';
 import MessageList from './components/Chat/MessageList';
 import ComposeBox from './components/Chat/ComposeBox';
 import InfoPanel from './components/InfoPanel/InfoPanel';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import useStore from './store/useStore';
 import './App.css';
 
-export default function App() {
-  const { conversations, activeConversation, selectConversation } = useStore();
+function LoadingScreen() {
+  return (
+    <div style={{ height: '100vh', background: 'var(--bg0)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
+      <div style={{ width: 36, height: 36, background: 'var(--red)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <i className="fa-solid fa-globe" style={{ color: '#fff', fontSize: 16 }} />
+      </div>
+      <span style={{ color: 'var(--muted)', fontSize: 14 }}>Cargando ORBIS…</span>
+    </div>
+  );
+}
+
+function MainApp() {
+  const { conversations, activeConversation, selectConversation, fetchConversations } = useStore();
+
+  useEffect(() => { fetchConversations(); }, []);
 
   useEffect(() => {
     if (!activeConversation && conversations.length > 0) {
@@ -43,4 +59,19 @@ export default function App() {
       </div>
     </div>
   );
+}
+
+export default function App() {
+  const { isAuthenticated, loading } = useAuth();
+  const [view, setView] = useState('login');
+
+  if (loading) return <LoadingScreen />;
+
+  if (!isAuthenticated) {
+    return view === 'login'
+      ? <Login    onGoRegister={() => setView('register')} />
+      : <Register onGoLogin={()    => setView('login')} />;
+  }
+
+  return <MainApp />;
 }

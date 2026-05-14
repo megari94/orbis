@@ -7,34 +7,64 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Auth
+// ─────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Multi-tenant
+// ─────────────────────────────────────────────────────────────────────────────
+
 model Tenant {
   id            String         @id @default(uuid())
   name          String
   createdAt     DateTime       @default(now())
+  users         User[]
   conversations Conversation[]
   contacts      Contact[]
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CRM
+// ─────────────────────────────────────────────────────────────────────────────
+
 model Contact {
-  id            String         @id @default(uuid())
+  id            String           @id @default(uuid())
   tenantId      String
-  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  tenant        Tenant           @relation(fields: [tenantId], references: [id])
   name          String
   email         String?
   phone         String?
   location      String?
-  createdAt     DateTime       @default(now())
+  createdAt     DateTime         @default(now())
   channels      ContactChannel[]
   conversations Conversation[]
 }
 
 model ContactChannel {
-  id         String   @id @default(uuid())
+  id         String  @id @default(uuid())
   contactId  String
-  contact    Contact  @relation(fields: [contactId], references: [id])
+  contact    Contact @relation(fields: [contactId], references: [id])
   channel    Channel
-  externalId String   // phone number, @handle, fb_id
-  linked     Boolean  @default(true)
+  externalId String
+  linked     Boolean @default(true)
 }
 
 model Conversation {
@@ -66,6 +96,10 @@ model Message {
   isInternal     Boolean      @default(false)
   createdAt      DateTime     @default(now())
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────────────────────
 
 enum Channel {
   WHATSAPP
