@@ -1,5 +1,5 @@
 # compiled output
-/dist
+# /dist  ← no ignorar en producción, Render lo necesita para el deploy
 /node_modules
 /build
 
