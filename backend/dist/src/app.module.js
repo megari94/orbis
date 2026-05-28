@@ -28,7 +28,7 @@ exports.AppModule = AppModule = __decorate([
             config_1.ConfigModule.forRoot({ isGlobal: true }),
             serve_static_1.ServeStaticModule.forRoot({
                 rootPath: (0, path_1.join)(__dirname, '..', '..', 'client'),
-                exclude: ['/api/(.*)'],
+                exclude: ['/api*'],
                 serveStaticOptions: { index: false },
             }),
             prisma_module_1.PrismaModule,
