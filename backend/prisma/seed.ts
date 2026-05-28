@@ -1,4 +1,5 @@
-import { PrismaClient, Channel, Status, Priority, SenderType } from '@prisma/client';
+import { PrismaClient, Channel, Status, Priority, SenderType, UserRole } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
@@ -70,6 +71,20 @@ async function main() {
       { id: 'm3', conversationId: 'conv1', sender: SenderType.CONTACT, channel: Channel.WHATSAPP,  content: '¿Me hacés un descuento si llevo 3?', isBot: false },
       { id: 'm4', conversationId: 'conv1', sender: SenderType.SYSTEM,  channel: Channel.WHATSAPP,  content: 'Bot derivó a humano — negociación de precios detectada', isBot: false, isInternal: true },
     ],
+  });
+
+  // Usuario demo admin
+  const hashed = await bcrypt.hash('demo1234', 10);
+  await prisma.user.upsert({
+    where: { email: 'demo@orbis.com' },
+    update: {},
+    create: {
+      email: 'demo@orbis.com',
+      password: hashed,
+      name: 'Admin Demo',
+      tenantId: tenant.id,
+      role: UserRole.ADMIN,
+    },
   });
 
   console.log('✅ Seed completado — tenant:', tenant.id);

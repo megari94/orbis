@@ -19,6 +19,7 @@ model User {
   tenantId  String
   tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   role      UserRole @default(USER)
+  avatarUrl String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -33,12 +34,48 @@ enum UserRole {
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Tenant {
-  id            String         @id @default(uuid())
-  name          String
-  createdAt     DateTime       @default(now())
-  users         User[]
-  conversations Conversation[]
-  contacts      Contact[]
+  id             String          @id @default(uuid())
+  name           String
+  createdAt      DateTime        @default(now())
+  users          User[]
+  conversations  Conversation[]
+  contacts       Contact[]
+  channelConfigs ChannelConfig[]
+
+  // Integración n8n
+  n8nWebhookUrl  String?
+  n8nSecret      String?
+
+  // Bot IA
+  botConfig      BotConfig?
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Channel configuration (Meta / WhatsApp / Instagram / Messenger)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ChannelConfig {
+  id                 String   @id @default(uuid())
+  tenantId           String
+  tenant             Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  channel            Channel
+  isActive           Boolean  @default(false)
+
+  // WhatsApp Cloud API
+  phoneNumberId      String?
+  wabaId             String?
+
+  // Instagram / Messenger
+  pageId             String?
+
+  // Compartidos
+  accessToken        String?
+  webhookVerifyToken String?
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([tenantId, channel])
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -78,11 +115,12 @@ model Conversation {
   priority    Priority  @default(NORMAL)
   assignedTo  String?
   tags        String[]
-  lastMessage String?
-  lastMsgAt   DateTime  @default(now())
-  unreadCount Int       @default(0)
-  createdAt   DateTime  @default(now())
-  messages    Message[]
+  lastMessage   String?
+  lastMsgAt     DateTime  @default(now())
+  unreadCount   Int       @default(0)
+  botHandedOff  Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  messages      Message[]
 }
 
 model Message {
@@ -95,6 +133,29 @@ model Message {
   isBot          Boolean      @default(false)
   isInternal     Boolean      @default(false)
   createdAt      DateTime     @default(now())
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Bot IA
+// ─────────────────────────────────────────────────────────────────────────────
+
+model BotConfig {
+  id              String   @id @default(uuid())
+  tenantId        String   @unique
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  isActive        Boolean  @default(false)
+
+  // Contexto del negocio (se convierte en system prompt)
+  businessContext String   @db.Text
+
+  // Mensaje que envía el bot cuando deriva a un humano
+  handoffMessage  String   @default("Perfecto, te estoy conectando con uno de nuestros asesores ahora mismo 🤝 En breve te contactan.")
+
+  // Modelo de OpenAI a usar
+  model           String   @default("gpt-4o-mini")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

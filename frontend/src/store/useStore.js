@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getConversations, getMessages, sendMessage as apiSendMessage, updateConversation } from '../services/api';
+import { getConversations, getConversation, getMessages, sendMessage as apiSendMessage, updateConversation } from '../services/api';
 
 // ── Mapeo de valores entre backend y frontend ─────────────────────────────────
 const STATUS_FROM_API = { NEW: 'nuevo', OPEN: 'open', PENDING: 'pending', RESOLVED: 'done' };
@@ -34,6 +34,7 @@ function mapConversation(c) {
     unread:   c.unreadCount ?? 0,
     priority: c.priority === 'HIGH',
     tag:      c.tags?.[0] ?? null,
+    contact:  c.contact ?? null,
   };
 }
 
@@ -55,37 +56,14 @@ function mapMessage(m, idx) {
   };
 }
 
-// ── Datos mock (fallback sin backend) ─────────────────────────────────────────
-const MOCK_CONVERSATIONS = [
-  { id: 'conv1', name: 'Valentina Acosta', initials: 'VA', channel: 'WHATSAPP', status: 'nuevo', time: '10:42', preview: '¿Me hacés un descuento si llevo 3?', unread: 2, priority: true, tag: null },
-  { id: 'conv2', name: 'Lucas Moreno',     initials: 'LM', channel: 'INSTAGRAM', status: 'open',  time: '09:18', preview: 'Cuánto sale el envío a Córdoba?',     unread: 0, priority: false, tag: null },
-  { id: 'conv3', name: 'Sofía Ramírez',    initials: 'SR', channel: 'MESSENGER', status: 'done',  time: 'Ayer',  preview: 'Hola! Vi el post de la campera...',   unread: 0, priority: false, tag: null },
-  { id: 'conv4', name: 'Mateo González',   initials: 'MG', channel: 'WHATSAPP', status: 'nuevo', time: 'Ayer',  preview: 'Necesito hablar con alguien urgente',  unread: 1, priority: true,  tag: null },
-  { id: 'conv5', name: 'Paula Nieto',      initials: 'PN', channel: 'INSTAGRAM', status: 'done',  time: 'Lun',   preview: 'Ok perfecto, muchas gracias!',         unread: 0, priority: false, tag: null },
-  { id: 'conv6', name: 'Juan Cabrera',     initials: 'JC', channel: 'MESSENGER', status: 'nuevo', time: 'Lun',   preview: 'El producto llegó roto :(',            unread: 0, priority: false, tag: 'reclamo' },
-  { id: 'conv7', name: 'Camila Reyes',     initials: 'CR', channel: 'WHATSAPP', status: 'open',  time: 'Dom',   preview: 'Aceptan Mercado Pago en cuotas?',      unread: 0, priority: false, tag: null },
-];
-
-const MOCK_MESSAGES = {
-  conv1: [
-    { id: 1, type: 'day-sep',  text: '11 de mayo · 2026' },
-    { id: 2, dir: 'in',  channel: 'WHATSAPP', text: 'Hola! Vi que tenés remeras de algodón. Qué precio tienen?', time: '10:35' },
-    { id: 3, dir: 'out', bot: true,  text: '¡Hola Valentina! Las remeras de algodón están a <strong style="color:#8fd490;">$8.500 ARS</strong> (IVA incluido). Tenemos talles S al XL. ¿Querés que te mande el catálogo completo?', time: '10:35' },
-    { id: 4, dir: 'in',  channel: 'WHATSAPP', text: '¿Me hacés un descuento si llevo 3?', time: '10:42' },
-    { id: 5, type: 'internal', text: 'Bot derivó a humano — negociación de precios detectada' },
-    { id: 6, dir: 'out', bot: false, text: '¡Hola Vale! Sí, podemos hacerte un 10% de descuento por 3 unidades o más. Te quedarían a $7.650 c/u. ¿Te mando los talles disponibles?', time: '10:44' },
-    { id: 7, dir: 'in',  channel: 'WHATSAPP', text: 'Buenísimo!! Quiero ver los talles y colores 👀', time: '10:46' },
-    { id: 8, dir: 'in',  channel: 'WHATSAPP', text: 'Escribiendo…', time: 'ahora', ghost: true },
-  ],
-};
-
 // ── Store ─────────────────────────────────────────────────────────────────────
 const useStore = create((set, get) => ({
-  conversations:      MOCK_CONVERSATIONS,
+  conversations:      [],
   activeConversation: null,
   messages:           [],
   filter:             { status: null, channel: null },
   loading:            false,
+  loadingMessages:    false,
 
   fetchConversations: async () => {
     set({ loading: true });
@@ -97,17 +75,22 @@ const useStore = create((set, get) => ({
       const data = await getConversations(params);
       set({ conversations: data.map(mapConversation) });
     } catch {
-      set({ conversations: MOCK_CONVERSATIONS });
+      set({ conversations: [] });
     } finally {
       set({ loading: false });
     }
   },
 
   selectConversation: async (conv) => {
-    set({ activeConversation: conv, messages: [] });
+    set({ activeConversation: conv, messages: [], loadingMessages: true });
+    // Obtener conversación completa con contact.channels
+    try {
+      const full = await getConversation(conv.id);
+      set({ activeConversation: mapConversation(full) });
+    } catch { /* mantener conv minimal */ }
+    // Obtener mensajes
     try {
       const msgs = await getMessages(conv.id);
-      // Insertar separador de fecha si hay mensajes
       const mapped = msgs.map(mapMessage);
       if (mapped.length > 0 && msgs[0]?.createdAt) {
         const d = new Date(msgs[0].createdAt);
@@ -116,7 +99,9 @@ const useStore = create((set, get) => ({
       }
       set({ messages: mapped });
     } catch {
-      set({ messages: MOCK_MESSAGES[conv.id] || [] });
+      set({ messages: [] });
+    } finally {
+      set({ loadingMessages: false });
     }
   },
 
@@ -153,13 +138,13 @@ const useStore = create((set, get) => ({
     get().fetchConversations();
   },
 
-  // Limpia el store al hacer logout
   reset: () => set({
-    conversations:      MOCK_CONVERSATIONS,
+    conversations:      [],
     activeConversation: null,
     messages:           [],
     filter:             { status: null, channel: null },
     loading:            false,
+    loadingMessages:    false,
   }),
 }));
 

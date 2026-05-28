@@ -12,7 +12,7 @@ const STATUS_LABEL = { nuevo: 'nuevo', open: 'en curso', pending: 'pendiente', d
 const FILTER_TABS = ['Todos', 'Nuevos', 'Pendientes', 'Míos'];
 
 export default function Sidebar() {
-  const { conversations, activeConversation, selectConversation } = useStore();
+  const { conversations, activeConversation, selectConversation, loading } = useStore();
   const [search, setSearch]       = useState('');
   const [activeTab, setActiveTab] = useState('Todos');
 
@@ -70,7 +70,17 @@ export default function Sidebar() {
       </div>
 
       <div className="conv-list">
-        {filtered.map(conv => (
+        {loading && (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0', color: 'var(--dim)' }}>
+            <i className="fa-solid fa-circle-notch fa-spin" style={{ fontSize: 20 }} />
+          </div>
+        )}
+        {!loading && filtered.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--dim)', fontSize: 13 }}>
+            {search ? 'Sin resultados para esa búsqueda' : 'No hay conversaciones'}
+          </div>
+        )}
+        {!loading && filtered.map(conv => (
           <div
             key={conv.id}
             className={`conv-item${activeConversation?.id === conv.id ? ' active' : ''}`}

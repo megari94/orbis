@@ -43,8 +43,11 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  // Permite actualizar el user en el contexto desde cualquier componente
+  const updateUser = (data) => setUser(prev => ({ ...prev, ...data }));
+
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthenticated: !!user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, isAuthenticated: !!user, login, register, logout, setUser: updateUser }}>
       {children}
     </AuthContext.Provider>
   );

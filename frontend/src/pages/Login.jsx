@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import PasswordInput from '../components/UI/PasswordInput';
 
 export default function Login({ onGoRegister }) {
   const { login } = useAuth();
@@ -49,13 +50,11 @@ export default function Login({ onGoRegister }) {
 
           <div style={styles.field}>
             <label style={styles.label}>Contraseña</label>
-            <input
-              type="password"
+            <PasswordInput
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
               required
-              style={styles.input}
             />
           </div>
 

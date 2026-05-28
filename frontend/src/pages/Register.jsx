@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import PasswordInput from '../components/UI/PasswordInput';
 
 export default function Register({ onGoLogin }) {
   const { register } = useAuth();
@@ -7,7 +8,7 @@ export default function Register({ onGoLogin }) {
   const [error,   setError]   = useState('');
   const [loading, setLoading] = useState(false);
 
-  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+  const handleChange = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,22 +41,27 @@ export default function Register({ onGoLogin }) {
           <div style={styles.row}>
             <div style={styles.field}>
               <label style={styles.label}>Tu nombre</label>
-              <input type="text" value={form.name} onChange={set('name')} placeholder="Ana García" required style={styles.input} />
+              <input type="text" value={form.name} onChange={handleChange('name')} placeholder="Ana García" required style={styles.input} />
             </div>
             <div style={styles.field}>
               <label style={styles.label}>Nombre del negocio</label>
-              <input type="text" value={form.tenantName} onChange={set('tenantName')} placeholder="Mi Tienda" required style={styles.input} />
+              <input type="text" value={form.tenantName} onChange={handleChange('tenantName')} placeholder="Mi Tienda" required style={styles.input} />
             </div>
           </div>
 
           <div style={styles.field}>
             <label style={styles.label}>Email</label>
-            <input type="email" value={form.email} onChange={set('email')} placeholder="tu@negocio.com" required style={styles.input} />
+            <input type="email" value={form.email} onChange={handleChange('email')} placeholder="tu@negocio.com" required style={styles.input} />
           </div>
 
           <div style={styles.field}>
             <label style={styles.label}>Contraseña</label>
-            <input type="password" value={form.password} onChange={set('password')} placeholder="Mínimo 6 caracteres" required style={styles.input} />
+            <PasswordInput
+              value={form.password}
+              onChange={handleChange('password')}
+              placeholder="Mínimo 6 caracteres"
+              required
+            />
           </div>
 
           {error && (

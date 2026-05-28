@@ -1,34 +1,29 @@
 import useStore from '../../store/useStore';
 
-const AV_CLASS    = { WHATSAPP: 'av-wa', INSTAGRAM: 'av-ig', MESSENGER: 'av-fb' };
+const AV_CLASS = { WHATSAPP: 'av-wa', INSTAGRAM: 'av-ig', MESSENGER: 'av-fb' };
 
-const CONTACT_DATA = {
-  1: { phone: '+54 9 11 5832-7291', email: 'v.acosta@gmail.com', location: 'CABA, Argentina', since: 'abr. 2025',
-       channels: [
-         { cls: 'ch-wa', label: 'WA', value: '+54 9 11 5832-7291', active: true },
-         { cls: 'ch-ig', label: 'IG', value: '@vale.acosta',        active: true },
-         { cls: 'ch-fb', label: 'FB', value: 'no vinculado',        active: false },
-       ],
-       aiSuggestion: 'Ofrecer 10% de descuento por 3+ unidades. Valentina consultó por mayoristas en marzo 2025.',
-       history: [
-         { label: 'Consulta envío',     badge: 'ch-ig', badgeLabel: 'IG' },
-         { label: 'Compra 2 remeras',   badge: 'ch-wa', badgeLabel: 'WA' },
-         { label: 'Pregunta talle XL',  badge: 'ch-wa', badgeLabel: 'WA' },
-       ],
-  },
+const CHANNEL_CONFIG = {
+  WHATSAPP:  { cls: 'ch-wa', label: 'WA' },
+  INSTAGRAM: { cls: 'ch-ig', label: 'IG' },
+  MESSENGER: { cls: 'ch-fb', label: 'FB' },
 };
 
-const DEFAULT_CONTACT = {
-  phone: '—', email: '—', location: '—', since: '—',
-  channels: [], aiSuggestion: null, history: [],
-};
+function formatSince(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('es-AR', { month: 'short', year: 'numeric' });
+}
 
 export default function InfoPanel() {
   const { activeConversation } = useStore();
   if (!activeConversation) return null;
 
-  const { name, initials, channel, id } = activeConversation;
-  const data = CONTACT_DATA[id] || DEFAULT_CONTACT;
+  const { name, initials, channel, contact } = activeConversation;
+
+  const phone    = contact?.phone    || '—';
+  const email    = contact?.email    || '—';
+  const location = contact?.location || '—';
+  const since    = formatSince(contact?.createdAt);
+  const channels = contact?.channels ?? [];
 
   return (
     <aside className="info-panel">
@@ -41,40 +36,31 @@ export default function InfoPanel() {
           </div>
           <div>
             <div className="contact-big-name">{name}</div>
-            <div className="since">cliente desde {data.since}</div>
+            <div className="since">cliente desde {since}</div>
           </div>
         </div>
-        <div className="contact-row"><i className="fa-solid fa-phone" />{data.phone}</div>
-        <div className="contact-row"><i className="fa-solid fa-envelope" />{data.email}</div>
-        <div className="contact-row"><i className="fa-solid fa-location-dot" />{data.location}</div>
+        <div className="contact-row"><i className="fa-solid fa-phone" />{phone}</div>
+        <div className="contact-row"><i className="fa-solid fa-envelope" />{email}</div>
+        <div className="contact-row"><i className="fa-solid fa-location-dot" />{location}</div>
       </div>
 
       <div className="ip-section">
         <div className="ip-label">Canales vinculados</div>
         <div className="ch-ids">
-          {data.channels.map((ch, i) => (
-            <div key={i} className={`cid-row${ch.active ? '' : ' inactive'}`}>
-              <span className={`ch-badge ${ch.cls}`} style={ch.active ? {} : { opacity: .5 }}>{ch.label}</span>
-              {ch.value}
-            </div>
-          ))}
-          {data.channels.length === 0 && (
-            <div className="cid-row inactive">Sin canales vinculados</div>
-          )}
+          {channels.length > 0
+            ? channels.map((ch, i) => {
+                const cfg = CHANNEL_CONFIG[ch.channel] || { cls: '', label: ch.channel };
+                return (
+                  <div key={i} className="cid-row">
+                    <span className={`ch-badge ${cfg.cls}`}>{cfg.label}</span>
+                    {ch.externalId}
+                  </div>
+                );
+              })
+            : <div className="cid-row inactive">Sin canales vinculados</div>
+          }
         </div>
       </div>
-
-      {data.aiSuggestion && (
-        <div className="ip-section">
-          <div className="ip-label">Sugerencia IA</div>
-          <div className="ai-box">
-            <div className="ai-label">
-              <i className="fa-solid fa-wand-magic-sparkles" /> DeepSeek
-            </div>
-            <div className="ai-text">{data.aiSuggestion}</div>
-          </div>
-        </div>
-      )}
 
       <div className="ip-section">
         <div className="ip-label">Asignado a</div>
@@ -90,18 +76,6 @@ export default function InfoPanel() {
         <div className="ip-label">Nota interna</div>
         <textarea className="note-ta" rows={3} placeholder="Solo visible para el equipo…" />
       </div>
-
-      {data.history.length > 0 && (
-        <div className="ip-section">
-          <div className="ip-label">Historial cross-canal</div>
-          {data.history.map((h, i) => (
-            <div key={i} className="hist-item">
-              <span>{h.label}</span>
-              <span className={`ch-badge ${h.badge}`}>{h.badgeLabel}</span>
-            </div>
-          ))}
-        </div>
-      )}
 
     </aside>
   );
