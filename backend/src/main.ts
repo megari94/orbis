@@ -47,7 +47,7 @@ async function bootstrap() {
   // SPA fallback: cualquier ruta que no sea /api ni /uploads sirve index.html
   if (existsSync(clientPath)) {
     const expressApp = app.getHttpAdapter().getInstance();
-    expressApp.get('*', (_req: any, res: any) => {
+    expressApp.get(/^(?!\/api|\/uploads).*$/, (_req: any, res: any) => {
       res.sendFile(join(clientPath, 'index.html'));
     });
   }

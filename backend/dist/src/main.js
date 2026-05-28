@@ -39,7 +39,7 @@ async function bootstrap() {
     swagger_1.SwaggerModule.setup('docs', app, swagger_1.SwaggerModule.createDocument(app, config));
     if ((0, fs_1.existsSync)(clientPath)) {
         const expressApp = app.getHttpAdapter().getInstance();
-        expressApp.get('*', (_req, res) => {
+        expressApp.get(/^(?!\/api|\/uploads).*$/, (_req, res) => {
             res.sendFile((0, path_1.join)(clientPath, 'index.html'));
         });
     }
