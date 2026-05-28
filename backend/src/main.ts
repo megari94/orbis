@@ -4,12 +4,19 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { existsSync } from 'fs';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Servir archivos estáticos desde /uploads (avatares, etc.)
   app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads' });
+
+  // Servir el frontend de React (CSS, JS, assets)
+  const clientPath = join(__dirname, '..', '..', 'client');
+  if (existsSync(clientPath)) {
+    app.useStaticAssets(clientPath);
+  }
 
   const allowedOrigins = [
     process.env.FRONTEND_URL,
@@ -36,6 +43,14 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, config));
+
+  // SPA fallback: cualquier ruta que no sea /api ni /uploads sirve index.html
+  if (existsSync(clientPath)) {
+    const expressApp = app.getHttpAdapter().getInstance();
+    expressApp.get('*', (_req: any, res: any) => {
+      res.sendFile(join(clientPath, 'index.html'));
+    });
+  }
 
   const port = process.env.PORT || 3000;
   await app.listen(port, '0.0.0.0');

@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { ConversationsModule } from './conversations/conversations.module';
@@ -14,10 +12,6 @@ import { AiBotModule } from './ai-bot/ai-bot.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    // Sirve el frontend de React desde backend/client/
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', '..', 'client'),
-    }),
     PrismaModule,
     AuthModule,
     ConversationsModule,

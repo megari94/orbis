@@ -5,9 +5,14 @@ const app_module_1 = require("./app.module");
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const path_1 = require("path");
+const fs_1 = require("fs");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.useStaticAssets((0, path_1.join)(__dirname, '..', 'uploads'), { prefix: '/uploads' });
+    const clientPath = (0, path_1.join)(__dirname, '..', '..', 'client');
+    if ((0, fs_1.existsSync)(clientPath)) {
+        app.useStaticAssets(clientPath);
+    }
     const allowedOrigins = [
         process.env.FRONTEND_URL,
         /^http:\/\/localhost(:\d+)?$/,
@@ -32,6 +37,12 @@ async function bootstrap() {
         .addBearerAuth()
         .build();
     swagger_1.SwaggerModule.setup('docs', app, swagger_1.SwaggerModule.createDocument(app, config));
+    if ((0, fs_1.existsSync)(clientPath)) {
+        const expressApp = app.getHttpAdapter().getInstance();
+        expressApp.get('*', (_req, res) => {
+            res.sendFile((0, path_1.join)(clientPath, 'index.html'));
+        });
+    }
     const port = process.env.PORT || 3000;
     await app.listen(port, '0.0.0.0');
     console.log(`ORBIS backend running on port ${port}`);
