@@ -11,14 +11,19 @@ async function bootstrap() {
   // Servir archivos estáticos desde /uploads (avatares, etc.)
   app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads' });
 
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    /^http:\/\/localhost(:\d+)?$/,
+  ].filter(Boolean);
+
   app.enableCors({
     origin: (origin, callback) => {
-      // Permite cualquier localhost (cualquier puerto) y requests sin origin (ej. Postman)
-      if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS bloqueado para: ${origin}`));
-      }
+      if (!origin) return callback(null, true); // Postman / curl
+      const allowed = allowedOrigins.some(o =>
+        typeof o === 'string' ? o === origin : (o as RegExp).test(origin)
+      );
+      if (allowed) callback(null, true);
+      else callback(new Error(`CORS bloqueado para: ${origin}`));
     },
     credentials: true,
   });
@@ -32,8 +37,9 @@ async function bootstrap() {
     .build();
   SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, config));
 
-  await app.listen(3000);
-  console.log('ORBIS backend running on http://localhost:3000');
-  console.log('Swagger docs: http://localhost:3000/docs');
+  const port = process.env.PORT || 3000;
+  await app.listen(port, '0.0.0.0');
+  console.log(`ORBIS backend running on port ${port}`);
+  console.log(`Swagger docs: http://localhost:${port}/docs`);
 }
 bootstrap();
