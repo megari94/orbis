@@ -17,8 +17,6 @@ import { AiBotModule } from './ai-bot/ai-bot.module';
     // Sirve el frontend de React desde backend/client/
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', '..', 'client'),
-      exclude: ['/api/{*path}'],
-      serveStaticOptions: { index: false },
     }),
     PrismaModule,
     AuthModule,
