@@ -26,9 +26,17 @@ function LoadingScreen() {
 }
 
 function MainApp() {
-  const { conversations, activeConversation, selectConversation, fetchConversations } = useStore();
+  const { conversations, activeConversation, selectConversation, fetchConversations, refreshConversations, refreshMessages } = useStore();
 
+  // Carga inicial
   useEffect(() => { fetchConversations(); }, []);
+
+  // Polling: conversaciones cada 5s, mensajes activos cada 4s
+  useEffect(() => {
+    const convTimer = setInterval(() => refreshConversations(), 5000);
+    const msgTimer  = setInterval(() => refreshMessages(),      4000);
+    return () => { clearInterval(convTimer); clearInterval(msgTimer); };
+  }, []);
 
   useEffect(() => {
     if (!activeConversation && conversations.length > 0) {

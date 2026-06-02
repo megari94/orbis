@@ -105,6 +105,52 @@ const useStore = create((set, get) => ({
     }
   },
 
+  // Refresca mensajes de la conversación activa sin mostrar spinner
+  refreshMessages: async () => {
+    const conv = get().activeConversation;
+    if (!conv) return;
+    try {
+      const msgs = await getMessages(conv.id);
+      const currentIds = new Set(get().messages.map(m => m.id));
+      const newMapped = msgs.map(mapMessage);
+
+      // Solo actualizar si hay mensajes nuevos o cambios
+      const hasNew = newMapped.some(m => !currentIds.has(m.id));
+      if (!hasNew) return;
+
+      // Reconstruir con separador de fecha
+      const withSep = [...newMapped];
+      if (withSep.length > 0 && msgs[0]?.createdAt) {
+        const d = new Date(msgs[0].createdAt);
+        const label = d.toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+        withSep.unshift({ id: 'sep-0', type: 'day-sep', text: label });
+      }
+      set({ messages: withSep });
+    } catch { /* silencioso */ }
+  },
+
+  // Refresca la lista de conversaciones sin spinner
+  refreshConversations: async () => {
+    try {
+      const params = {};
+      const f = get().filter;
+      if (f.status)  params.status  = STATUS_TO_API[f.status] ?? f.status;
+      if (f.channel) params.channel = f.channel;
+      const data = await getConversations(params);
+      const mapped = data.map(mapConversation);
+
+      // Actualizar sin perder la conversación activa seleccionada
+      const active = get().activeConversation;
+      set({ conversations: mapped });
+
+      // Si la conversación activa cambió (ej: nuevo unreadCount), actualizar
+      if (active) {
+        const updated = mapped.find(c => c.id === active.id);
+        if (updated) set({ activeConversation: { ...active, ...updated } });
+      }
+    } catch { /* silencioso */ }
+  },
+
   sendMessage: async (content) => {
     const conv = get().activeConversation;
     if (!conv) return;
