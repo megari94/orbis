@@ -167,9 +167,9 @@ export class N8nService {
       });
     }
 
-    // 2. Encontrar o crear conversación abierta
+    // 2. Encontrar o crear conversación abierta (cualquiera que no esté resuelta)
     let conversation = await this.prisma.conversation.findFirst({
-      where: { tenantId, contactId: contact.id, channel: channel as any, status: { not: 'CLOSED' as any } },
+      where: { tenantId, contactId: contact.id, channel: channel as any, status: { not: 'RESOLVED' } },
       orderBy: { lastMsgAt: 'desc' },
     });
     if (!conversation) {

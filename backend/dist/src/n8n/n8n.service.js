@@ -141,7 +141,7 @@ let N8nService = N8nService_1 = class N8nService {
             });
         }
         let conversation = await this.prisma.conversation.findFirst({
-            where: { tenantId, contactId: contact.id, channel: channel, status: { not: 'CLOSED' } },
+            where: { tenantId, contactId: contact.id, channel: channel, status: { not: 'RESOLVED' } },
             orderBy: { lastMsgAt: 'desc' },
         });
         if (!conversation) {
