@@ -109,10 +109,14 @@ function ChannelCard({ channel, config, onSave, onDisconnect }) {
 
       {open && (
         <div style={{ padding: '0 18px 18px', borderTop: '1px solid var(--border)' }}>
+          {/* Input trampa: evita que el navegador rellene los campos reales con credenciales guardadas */}
+          <input type="text"     autoComplete="username" style={{ display: 'none' }} aria-hidden="true" readOnly />
+          <input type="password" autoComplete="current-password" style={{ display: 'none' }} aria-hidden="true" readOnly />
+
           <div style={{ margin: '14px 0 16px' }}>
             <label style={sty.label}>URL del Webhook</label>
             <div style={{ display: 'flex', gap: 8 }}>
-              <input readOnly value={`${window.location.origin}/api/webhooks/${channel.key.toLowerCase()}`} style={{ ...sty.input, color: 'var(--dim)', fontSize: 12, flex: 1 }} />
+              <input readOnly value={`${window.location.origin}/api/webhooks/${channel.key.toLowerCase()}`} style={{ ...sty.input, color: 'var(--dim)', fontSize: 12, flex: 1 }} autoComplete="off" />
               <button onClick={() => navigator.clipboard.writeText(`${window.location.origin}/api/webhooks/${channel.key.toLowerCase()}`)} style={sty.copyBtn} title="Copiar"><i className="fa-regular fa-copy" /></button>
             </div>
             <div style={sty.help}>Pegá esta URL en Meta Developers → Webhooks</div>
@@ -126,6 +130,7 @@ function ChannelCard({ channel, config, onSave, onDisconnect }) {
                     <input
                       readOnly
                       value={form[field.key] ?? ''}
+                      autoComplete="off"
                       style={{ ...sty.input, color: 'var(--dim)', fontSize: 12, flex: 1, fontFamily: 'monospace' }}
                     />
                     <button
@@ -144,6 +149,7 @@ function ChannelCard({ channel, config, onSave, onDisconnect }) {
                       value={form[field.key] ?? ''}
                       onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
                       placeholder={field.placeholder}
+                      autoComplete="new-password"
                       style={{ ...sty.input, paddingRight: 38 }}
                     />
                     <button
@@ -156,7 +162,7 @@ function ChannelCard({ channel, config, onSave, onDisconnect }) {
                     </button>
                   </div>
                 ) : (
-                  <input type="text" value={form[field.key] ?? ''} onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))} placeholder={field.placeholder} style={sty.input} />
+                  <input type="text" value={form[field.key] ?? ''} onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))} placeholder={field.placeholder} autoComplete="off" style={sty.input} />
                 )}
                 <div style={sty.help}>{field.help}</div>
               </div>
