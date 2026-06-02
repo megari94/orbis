@@ -32,6 +32,23 @@ let ChannelConfigService = class ChannelConfigService {
             create: { tenantId, channel, ...data, isActive },
         });
     }
+    async findByVerifyToken(channel, verifyToken) {
+        return this.prisma.channelConfig.findFirst({
+            where: { channel: channel, webhookVerifyToken: verifyToken, isActive: false },
+        }) ?? this.prisma.channelConfig.findFirst({
+            where: { channel: channel, webhookVerifyToken: verifyToken },
+        });
+    }
+    async findByPhoneNumberId(phoneNumberId) {
+        return this.prisma.channelConfig.findFirst({
+            where: { phoneNumberId },
+        });
+    }
+    async findByPageId(pageId) {
+        return this.prisma.channelConfig.findFirst({
+            where: { pageId },
+        });
+    }
     async disconnect(tenantId, channel) {
         return this.prisma.channelConfig.upsert({
             where: { tenantId_channel: { tenantId, channel } },

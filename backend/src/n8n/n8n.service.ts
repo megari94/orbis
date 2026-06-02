@@ -148,6 +148,40 @@ export class N8nService {
     return message;
   }
 
+  // ── Crear mensaje entrante desde webhook externo (WhatsApp, Instagram…) ──────
+
+  async createIncomingMessage(
+    tenantId: string,
+    channel: string,
+    externalId: string,  // número de teléfono o ID de usuario
+    displayName: string, // nombre a mostrar
+    content: string,
+  ) {
+    // 1. Encontrar o crear contacto
+    let contact = await this.prisma.contact.findFirst({
+      where: { tenantId, phone: externalId },
+    });
+    if (!contact) {
+      contact = await this.prisma.contact.create({
+        data: { tenantId, name: displayName, phone: externalId },
+      });
+    }
+
+    // 2. Encontrar o crear conversación abierta
+    let conversation = await this.prisma.conversation.findFirst({
+      where: { tenantId, contactId: contact.id, channel: channel as any, status: { not: 'CLOSED' as any } },
+      orderBy: { lastMsgAt: 'desc' },
+    });
+    if (!conversation) {
+      conversation = await this.prisma.conversation.create({
+        data: { tenantId, contactId: contact.id, channel: channel as any, status: 'NEW' },
+      });
+    }
+
+    // 3. Crear mensaje y disparar bot/n8n
+    return this.createContactMessage(tenantId, conversation.id, content);
+  }
+
   // ── Validar secret del callback de n8n ───────────────────────────────────
 
   async validateSecret(tenantId: string, secret: string): Promise<boolean> {

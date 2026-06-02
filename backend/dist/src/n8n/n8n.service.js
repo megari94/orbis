@@ -131,6 +131,26 @@ let N8nService = N8nService_1 = class N8nService {
         this.forwardToN8n(tenantId, conversationId, message.id, content).catch(() => { });
         return message;
     }
+    async createIncomingMessage(tenantId, channel, externalId, displayName, content) {
+        let contact = await this.prisma.contact.findFirst({
+            where: { tenantId, phone: externalId },
+        });
+        if (!contact) {
+            contact = await this.prisma.contact.create({
+                data: { tenantId, name: displayName, phone: externalId },
+            });
+        }
+        let conversation = await this.prisma.conversation.findFirst({
+            where: { tenantId, contactId: contact.id, channel: channel, status: { not: 'CLOSED' } },
+            orderBy: { lastMsgAt: 'desc' },
+        });
+        if (!conversation) {
+            conversation = await this.prisma.conversation.create({
+                data: { tenantId, contactId: contact.id, channel: channel, status: 'NEW' },
+            });
+        }
+        return this.createContactMessage(tenantId, conversation.id, content);
+    }
     async validateSecret(tenantId, secret) {
         const config = await this.getConfig(tenantId);
         if (!config?.n8nSecret)

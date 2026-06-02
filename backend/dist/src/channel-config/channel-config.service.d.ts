@@ -30,6 +30,45 @@ export declare class ChannelConfigService {
         accessToken: string | null;
         webhookVerifyToken: string | null;
     }>;
+    findByVerifyToken(channel: string, verifyToken: string): Promise<{
+        id: string;
+        createdAt: Date;
+        tenantId: string;
+        channel: import(".prisma/client").$Enums.Channel;
+        updatedAt: Date;
+        isActive: boolean;
+        phoneNumberId: string | null;
+        wabaId: string | null;
+        pageId: string | null;
+        accessToken: string | null;
+        webhookVerifyToken: string | null;
+    }>;
+    findByPhoneNumberId(phoneNumberId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        tenantId: string;
+        channel: import(".prisma/client").$Enums.Channel;
+        updatedAt: Date;
+        isActive: boolean;
+        phoneNumberId: string | null;
+        wabaId: string | null;
+        pageId: string | null;
+        accessToken: string | null;
+        webhookVerifyToken: string | null;
+    }>;
+    findByPageId(pageId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        tenantId: string;
+        channel: import(".prisma/client").$Enums.Channel;
+        updatedAt: Date;
+        isActive: boolean;
+        phoneNumberId: string | null;
+        wabaId: string | null;
+        pageId: string | null;
+        accessToken: string | null;
+        webhookVerifyToken: string | null;
+    }>;
     disconnect(tenantId: string, channel: Channel): Promise<{
         id: string;
         createdAt: Date;

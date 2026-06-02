@@ -35,5 +35,15 @@ export declare class N8nService {
         sender: import(".prisma/client").$Enums.SenderType;
         isBot: boolean;
     }>;
+    createIncomingMessage(tenantId: string, channel: string, externalId: string, displayName: string, content: string): Promise<{
+        id: string;
+        createdAt: Date;
+        channel: import(".prisma/client").$Enums.Channel;
+        isInternal: boolean;
+        content: string;
+        conversationId: string;
+        sender: import(".prisma/client").$Enums.SenderType;
+        isBot: boolean;
+    }>;
     validateSecret(tenantId: string, secret: string): Promise<boolean>;
 }

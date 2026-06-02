@@ -30,6 +30,29 @@ export class ChannelConfigService {
     });
   }
 
+  /** Busca config por webhookVerifyToken (para verificación de Meta) */
+  async findByVerifyToken(channel: string, verifyToken: string) {
+    return this.prisma.channelConfig.findFirst({
+      where: { channel: channel as any, webhookVerifyToken: verifyToken, isActive: false },
+    }) ?? this.prisma.channelConfig.findFirst({
+      where: { channel: channel as any, webhookVerifyToken: verifyToken },
+    });
+  }
+
+  /** Busca config por phoneNumberId (WhatsApp) */
+  async findByPhoneNumberId(phoneNumberId: string) {
+    return this.prisma.channelConfig.findFirst({
+      where: { phoneNumberId },
+    });
+  }
+
+  /** Busca config por pageId (Instagram / Messenger) */
+  async findByPageId(pageId: string) {
+    return this.prisma.channelConfig.findFirst({
+      where: { pageId },
+    });
+  }
+
   /** Desconecta un canal (borra credenciales y lo marca inactivo) */
   async disconnect(tenantId: string, channel: Channel) {
     return this.prisma.channelConfig.upsert({
