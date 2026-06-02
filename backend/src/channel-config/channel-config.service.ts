@@ -33,8 +33,6 @@ export class ChannelConfigService {
   /** Busca config por webhookVerifyToken (para verificación de Meta) */
   async findByVerifyToken(channel: string, verifyToken: string) {
     return this.prisma.channelConfig.findFirst({
-      where: { channel: channel as any, webhookVerifyToken: verifyToken, isActive: false },
-    }) ?? this.prisma.channelConfig.findFirst({
       where: { channel: channel as any, webhookVerifyToken: verifyToken },
     });
   }

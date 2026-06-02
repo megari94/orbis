@@ -34,8 +34,6 @@ let ChannelConfigService = class ChannelConfigService {
     }
     async findByVerifyToken(channel, verifyToken) {
         return this.prisma.channelConfig.findFirst({
-            where: { channel: channel, webhookVerifyToken: verifyToken, isActive: false },
-        }) ?? this.prisma.channelConfig.findFirst({
             where: { channel: channel, webhookVerifyToken: verifyToken },
         });
     }
