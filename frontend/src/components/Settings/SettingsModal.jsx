@@ -99,8 +99,8 @@ function ChannelCard({ channel, config, onSave, onDisconnect }) {
           <div style={{ margin: '14px 0 16px' }}>
             <label style={sty.label}>URL del Webhook</label>
             <div style={{ display: 'flex', gap: 8 }}>
-              <input readOnly value={`${window.location.protocol}//${window.location.hostname}:3000/api/webhooks/${channel.key.toLowerCase()}`} style={{ ...sty.input, color: 'var(--dim)', fontSize: 12, flex: 1 }} />
-              <button onClick={() => navigator.clipboard.writeText(`${window.location.protocol}//${window.location.hostname}:3000/api/webhooks/${channel.key.toLowerCase()}`)} style={sty.copyBtn} title="Copiar"><i className="fa-regular fa-copy" /></button>
+              <input readOnly value={`${window.location.origin}/api/webhooks/${channel.key.toLowerCase()}`} style={{ ...sty.input, color: 'var(--dim)', fontSize: 12, flex: 1 }} />
+              <button onClick={() => navigator.clipboard.writeText(`${window.location.origin}/api/webhooks/${channel.key.toLowerCase()}`)} style={sty.copyBtn} title="Copiar"><i className="fa-regular fa-copy" /></button>
             </div>
             <div style={sty.help}>Pegá esta URL en Meta Developers → Webhooks</div>
           </div>
