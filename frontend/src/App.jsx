@@ -10,6 +10,7 @@ import ComposeBox from './components/Chat/ComposeBox';
 import InfoPanel from './components/InfoPanel/InfoPanel';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ResetPassword from './pages/ResetPassword';
 import useStore from './store/useStore';
 import './App.css';
 
@@ -65,7 +66,24 @@ export default function App() {
   const { isAuthenticated, loading } = useAuth();
   const [view, setView] = useState('login');
 
+  // Detectar token de reset en la URL (?resetToken=xxx)
+  const resetToken = new URLSearchParams(window.location.search).get('resetToken');
+
   if (loading) return <LoadingScreen />;
+
+  // Si hay token de reset en la URL, mostrar pantalla de nueva contraseña
+  if (resetToken) {
+    return (
+      <ResetPassword
+        token={resetToken}
+        onDone={() => {
+          // Limpiar el token de la URL y volver al login
+          window.history.replaceState({}, '', '/');
+          setView('login');
+        }}
+      />
+    );
+  }
 
   if (!isAuthenticated) {
     return view === 'login'

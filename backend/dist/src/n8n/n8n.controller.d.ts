@@ -22,9 +22,9 @@ export declare class N8nController {
         createdAt: Date;
         channel: import(".prisma/client").$Enums.Channel;
         isInternal: boolean;
+        sender: import(".prisma/client").$Enums.SenderType;
         content: string;
         conversationId: string;
-        sender: import(".prisma/client").$Enums.SenderType;
         isBot: boolean;
     }>;
     simulateContactMessage(tenantId: string, conversationId: string, body: {
@@ -34,9 +34,9 @@ export declare class N8nController {
         createdAt: Date;
         channel: import(".prisma/client").$Enums.Channel;
         isInternal: boolean;
+        sender: import(".prisma/client").$Enums.SenderType;
         content: string;
         conversationId: string;
-        sender: import(".prisma/client").$Enums.SenderType;
         isBot: boolean;
     }>;
 }

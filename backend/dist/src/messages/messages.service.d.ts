@@ -8,9 +8,9 @@ export declare class MessagesService {
         createdAt: Date;
         channel: import(".prisma/client").$Enums.Channel;
         isInternal: boolean;
+        sender: import(".prisma/client").$Enums.SenderType;
         content: string;
         conversationId: string;
-        sender: import(".prisma/client").$Enums.SenderType;
         isBot: boolean;
     }[]>;
     create(tenantId: string, conversationId: string, dto: CreateMessageDto): Promise<{
@@ -18,9 +18,9 @@ export declare class MessagesService {
         createdAt: Date;
         channel: import(".prisma/client").$Enums.Channel;
         isInternal: boolean;
+        sender: import(".prisma/client").$Enums.SenderType;
         content: string;
         conversationId: string;
-        sender: import(".prisma/client").$Enums.SenderType;
         isBot: boolean;
     }>;
 }

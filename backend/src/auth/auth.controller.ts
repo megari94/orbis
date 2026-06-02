@@ -73,6 +73,20 @@ export class AuthController {
     return this.authService.changePassword(userId, dto);
   }
 
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Solicitar recuperación de contraseña por email' })
+  forgotPassword(@Body('email') email: string) {
+    return this.authService.forgotPassword(email);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Restablecer contraseña con token del email' })
+  resetPassword(@Body('token') token: string, @Body('password') password: string) {
+    return this.authService.resetPassword(token, password);
+  }
+
   @Delete('account')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

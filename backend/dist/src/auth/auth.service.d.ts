@@ -64,6 +64,13 @@ export declare class AuthService {
     changePassword(userId: string, dto: ChangePasswordDto): Promise<{
         message: string;
     }>;
+    forgotPassword(email: string): Promise<{
+        message: string;
+    }>;
+    resetPassword(token: string, newPassword: string): Promise<{
+        message: string;
+    }>;
+    private sendResetEmail;
     deleteAccount(userId: string, dto: DeleteAccountDto): Promise<{
         message: string;
     }>;

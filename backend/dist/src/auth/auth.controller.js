@@ -45,6 +45,12 @@ let AuthController = class AuthController {
     changePassword(userId, dto) {
         return this.authService.changePassword(userId, dto);
     }
+    forgotPassword(email) {
+        return this.authService.forgotPassword(email);
+    }
+    resetPassword(token, password) {
+        return this.authService.resetPassword(token, password);
+    }
     deleteAccount(userId, dto) {
         return this.authService.deleteAccount(userId, dto);
     }
@@ -104,6 +110,25 @@ __decorate([
     __metadata("design:paramtypes", [String, change_password_dto_1.ChangePasswordDto]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "changePassword", null);
+__decorate([
+    (0, common_1.Post)('forgot-password'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Solicitar recuperación de contraseña por email' }),
+    __param(0, (0, common_1.Body)('email')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "forgotPassword", null);
+__decorate([
+    (0, common_1.Post)('reset-password'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Restablecer contraseña con token del email' }),
+    __param(0, (0, common_1.Body)('token')),
+    __param(1, (0, common_1.Body)('password')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "resetPassword", null);
 __decorate([
     (0, common_1.Delete)('account'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

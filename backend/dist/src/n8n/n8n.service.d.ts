@@ -20,9 +20,9 @@ export declare class N8nService {
         createdAt: Date;
         channel: import(".prisma/client").$Enums.Channel;
         isInternal: boolean;
+        sender: import(".prisma/client").$Enums.SenderType;
         content: string;
         conversationId: string;
-        sender: import(".prisma/client").$Enums.SenderType;
         isBot: boolean;
     }>;
     createContactMessage(tenantId: string, conversationId: string, content: string): Promise<{
@@ -30,9 +30,9 @@ export declare class N8nService {
         createdAt: Date;
         channel: import(".prisma/client").$Enums.Channel;
         isInternal: boolean;
+        sender: import(".prisma/client").$Enums.SenderType;
         content: string;
         conversationId: string;
-        sender: import(".prisma/client").$Enums.SenderType;
         isBot: boolean;
     }>;
     createIncomingMessage(tenantId: string, channel: string, externalId: string, displayName: string, content: string): Promise<{
@@ -40,9 +40,9 @@ export declare class N8nService {
         createdAt: Date;
         channel: import(".prisma/client").$Enums.Channel;
         isInternal: boolean;
+        sender: import(".prisma/client").$Enums.SenderType;
         content: string;
         conversationId: string;
-        sender: import(".prisma/client").$Enums.SenderType;
         isBot: boolean;
     }>;
     validateSecret(tenantId: string, secret: string): Promise<boolean>;

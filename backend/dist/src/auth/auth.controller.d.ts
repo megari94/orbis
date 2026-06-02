@@ -52,6 +52,12 @@ export declare class AuthController {
     changePassword(userId: string, dto: ChangePasswordDto): Promise<{
         message: string;
     }>;
+    forgotPassword(email: string): Promise<{
+        message: string;
+    }>;
+    resetPassword(token: string, password: string): Promise<{
+        message: string;
+    }>;
     deleteAccount(userId: string, dto: DeleteAccountDto): Promise<{
         message: string;
     }>;
