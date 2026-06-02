@@ -57,9 +57,22 @@ function ChannelCard({ channel, config, onSave, onDisconnect }) {
   useEffect(() => {
     if (!open) return;
     const initial = {};
-    channel.fields.forEach(f => { initial[f.key] = config?.[f.key] ?? ''; });
+    channel.fields.forEach(f => {
+      if (f.key === 'webhookVerifyToken') {
+        // Si ya tiene token guardado, usarlo; si no, generar uno automáticamente
+        initial[f.key] = config?.[f.key] || generateVerifyToken();
+      } else {
+        initial[f.key] = config?.[f.key] ?? '';
+      }
+    });
     setForm(initial);
   }, [open]);
+
+  const generateVerifyToken = () => {
+    const arr = new Uint8Array(18);
+    crypto.getRandomValues(arr);
+    return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -108,7 +121,23 @@ function ChannelCard({ channel, config, onSave, onDisconnect }) {
             {channel.fields.map(field => (
               <div key={field.key}>
                 <label style={sty.label}>{field.label}</label>
-                {field.key === 'accessToken' ? (
+                {field.key === 'webhookVerifyToken' ? (
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <input
+                      readOnly
+                      value={form[field.key] ?? ''}
+                      style={{ ...sty.input, color: 'var(--dim)', fontSize: 12, flex: 1, fontFamily: 'monospace' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard.writeText(form[field.key] ?? '')}
+                      style={sty.copyBtn}
+                      title="Copiar token"
+                    >
+                      <i className="fa-regular fa-copy" />
+                    </button>
+                  </div>
+                ) : field.key === 'accessToken' ? (
                   <div style={{ position: 'relative' }}>
                     <input
                       type={showToken ? 'text' : 'password'}
