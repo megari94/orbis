@@ -76,8 +76,15 @@ export class MessagesService {
   private async sendWhatsApp(accessToken: string, phoneNumberId: string, to: string | null | undefined, content: string) {
     if (!to) { this.logger.warn('WhatsApp: sin número de destino'); return; }
 
-    // El número debe ir sin "+" — Meta lo acepta con o sin prefijo de país
-    const toClean = to.replace(/^\+/, '');
+    // Quitar el "+" si lo trae
+    let toClean = to.replace(/^\+/, '');
+
+    // Argentina: WhatsApp recibe mensajes con el 9 del prefijo móvil (549XXXXXXXXXX)
+    // pero la API de Meta para enviar espera sin el 9 (54XXXXXXXXXX).
+    // Ej: 5493624260894 → 543624260894
+    if (toClean.startsWith('549') && toClean.length === 13) {
+      toClean = '54' + toClean.slice(3);
+    }
 
     const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
     const body = {
