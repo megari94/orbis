@@ -123,9 +123,21 @@ let N8nService = N8nService_1 = class N8nService {
                 channel: conv.channel,
             },
         });
+        const statusOnIncoming = {
+            NEW: 'NEW',
+            OPEN: 'OPEN',
+            PENDING: 'NEW',
+            RESOLVED: 'NEW',
+        };
+        const newStatus = statusOnIncoming[conv.status] ?? 'NEW';
         await this.prisma.conversation.update({
             where: { id: conversationId },
-            data: { lastMessage: content, lastMsgAt: new Date(), unreadCount: { increment: 1 } },
+            data: {
+                lastMessage: content,
+                lastMsgAt: new Date(),
+                unreadCount: { increment: 1 },
+                status: newStatus,
+            },
         });
         this.aiBot.processMessage(tenantId, conversationId, content).catch(() => { });
         this.forwardToN8n(tenantId, conversationId, message.id, content).catch(() => { });

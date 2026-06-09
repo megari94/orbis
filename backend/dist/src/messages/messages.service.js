@@ -46,9 +46,16 @@ let MessagesService = MessagesService_1 = class MessagesService {
                 isInternal: dto.isInternal ?? false,
             },
         });
+        const statusOnReply = {
+            NEW: 'OPEN',
+            OPEN: 'OPEN',
+            PENDING: 'OPEN',
+            RESOLVED: 'OPEN',
+        };
+        const newStatus = statusOnReply[conv.status] ?? 'OPEN';
         await this.prisma.conversation.update({
             where: { id: conversationId },
-            data: { lastMessage: dto.content, lastMsgAt: new Date(), unreadCount: 0 },
+            data: { lastMessage: dto.content, lastMsgAt: new Date(), unreadCount: 0, status: newStatus },
         });
         if (!dto.isInternal) {
             this.sendViaChannel(tenantId, conv.channel, conv.contact?.phone, dto.content)

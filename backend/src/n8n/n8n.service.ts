@@ -134,9 +134,25 @@ export class N8nService {
       },
     });
 
+    // ── Lógica automática de estado ───────────────────────────────────────────
+    // PENDIENTE o RESUELTO + nuevo mensaje del cliente → NUEVO (reapertura)
+    // NUEVO u OPEN → sin cambio (ya está siendo atendido o en espera)
+    const statusOnIncoming: Record<string, string> = {
+      NEW:      'NEW',
+      OPEN:     'OPEN',
+      PENDING:  'NEW',   // cliente respondió mientras esperábamos → reabrir
+      RESOLVED: 'NEW',   // caso cerrado, cliente volvió → reabrir
+    };
+    const newStatus = statusOnIncoming[conv.status] ?? 'NEW';
+
     await this.prisma.conversation.update({
       where: { id: conversationId },
-      data: { lastMessage: content, lastMsgAt: new Date(), unreadCount: { increment: 1 } },
+      data: {
+        lastMessage: content,
+        lastMsgAt:   new Date(),
+        unreadCount: { increment: 1 },
+        status:      newStatus as any,
+      },
     });
 
     // 1. Intentar bot IA (tiene prioridad sobre n8n)

@@ -38,9 +38,20 @@ export class MessagesService {
       },
     });
 
+    // ── Lógica automática de estado ───────────────────────────────────────────
+    // Cuando el operador responde: NEW/PENDING/RESOLVED → OPEN (en curso)
+    // Si ya era OPEN, se mantiene.
+    const statusOnReply: Record<string, string> = {
+      NEW:      'OPEN',
+      OPEN:     'OPEN',
+      PENDING:  'OPEN',   // operador retomó la conversación
+      RESOLVED: 'OPEN',   // operador envió algo a una conversación resuelta
+    };
+    const newStatus = statusOnReply[conv.status] ?? 'OPEN';
+
     await this.prisma.conversation.update({
       where: { id: conversationId },
-      data: { lastMessage: dto.content, lastMsgAt: new Date(), unreadCount: 0 },
+      data: { lastMessage: dto.content, lastMsgAt: new Date(), unreadCount: 0, status: newStatus as any },
     });
 
     // Enviar el mensaje por el canal correspondiente (si no es interno)

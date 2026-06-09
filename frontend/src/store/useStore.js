@@ -86,7 +86,21 @@ const useStore = create((set, get) => ({
     // Obtener conversación completa con contact.channels
     try {
       const full = await getConversation(conv.id);
-      set({ activeConversation: mapConversation(full) });
+      const mapped = mapConversation(full);
+      set({ activeConversation: mapped });
+
+      // ── Lógica automática: NUEVO → EN CURSO al abrir ──────────────────────
+      // El operador abrió la conversación → pasa a "en curso" automáticamente
+      if (mapped.status === 'nuevo') {
+        try {
+          await updateConversation(conv.id, { status: 'OPEN' });
+          const updated = { ...mapped, status: 'open' };
+          set(s => ({
+            activeConversation: updated,
+            conversations: s.conversations.map(c => c.id === conv.id ? updated : c),
+          }));
+        } catch { /* no bloquear si falla */ }
+      }
     } catch { /* mantener conv minimal */ }
     // Obtener mensajes
     try {
