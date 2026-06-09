@@ -88,9 +88,10 @@ export default function Sidebar() {
     return matchSearch && matchChannel && matchStatus;
   });
 
-  const countNew  = conversations.filter(c => c.status === 'nuevo').length;
-  const countOpen = conversations.filter(c => c.status === 'open').length;
-  const countDone = conversations.filter(c => c.status === 'done').length;
+  const countNew     = conversations.filter(c => c.status === 'nuevo').length;
+  const countOpen    = conversations.filter(c => c.status === 'open').length;
+  const countPending = conversations.filter(c => c.status === 'pending').length;
+  const countDone    = conversations.filter(c => c.status === 'done').length;
 
   return (
     <aside className="sidebar" style={{ width, minWidth: width }}>
@@ -117,6 +118,10 @@ export default function Sidebar() {
         <div className="stat-cell">
           <div className="stat-n yel">{countOpen}</div>
           <div className="stat-lbl">En curso</div>
+        </div>
+        <div className="stat-cell">
+          <div className="stat-n muted">{countPending}</div>
+          <div className="stat-lbl">Pendientes</div>
         </div>
         <div className="stat-cell">
           <div className="stat-n green">{countDone}</div>

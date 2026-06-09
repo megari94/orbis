@@ -152,7 +152,7 @@ textarea { resize: none; }
 .chtab span { font-size: 10px; }
 
 .stats-bar {
-  display: grid; grid-template-columns: repeat(3, 1fr);
+  display: grid; grid-template-columns: repeat(4, 1fr);
   border-bottom: 1px solid var(--border); flex-shrink: 0;
 }
 .stat-cell { padding: 8px 0; text-align: center; background: var(--bg2); }
@@ -161,6 +161,7 @@ textarea { resize: none; }
 .stat-lbl { font-size: 12px; color: var(--dim); margin-top: 1px; }
 .stat-n.red   { color: var(--red-light); }
 .stat-n.yel   { color: #c8a040; }
+.stat-n.muted { color: var(--muted); }
 .stat-n.green { color: var(--green-light); }
 
 .conv-list { overflow-y: auto; flex: 1; }
