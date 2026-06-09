@@ -54,14 +54,6 @@ const STATUS_PIP   = { nuevo: 'pip-new', open: 'pip-open', pending: 'pip-pending
 const STATUS_TEXT  = { nuevo: 'st-new',  open: 'st-open',  pending: 'st-pending',  done: 'st-done' };
 const STATUS_LABEL = { nuevo: 'nuevo', open: 'en curso', pending: 'pendiente', done: 'resuelto' };
 
-const STATUS_TABS = [
-  { key: 'Todos',      label: 'Todos' },
-  { key: 'Nuevos',     label: 'Nuevos' },
-  { key: 'En curso',   label: 'En curso' },
-  { key: 'Pendientes', label: 'Pendiente' },
-  { key: 'Resueltos',  label: 'Resuelto' },
-];
-
 const CHANNEL_TABS = [
   { key: 'all',       label: 'Todos',  icon: 'fa-solid fa-layer-group',         color: 'var(--cream)' },
   { key: 'WHATSAPP',  label: 'WA',     icon: 'fa-brands fa-whatsapp',           color: '#25d366'      },
@@ -72,19 +64,22 @@ const CHANNEL_TABS = [
 export default function Sidebar() {
   const { conversations, activeConversation, selectConversation, loading } = useStore();
   const [search,        setSearch]        = useState('');
-  const [statusTab,     setStatusTab]     = useState('Todos');
+  const [statusFilter,  setStatusFilter]  = useState(null); // null = todos
   const [channelFilter, setChannelFilter] = useState('all');
   const { width, onMouseDown } = useSidebarResize();
+
+  // Clic en contador → filtra; clic de nuevo → muestra todos
+  const toggleStatus = (key) => setStatusFilter(s => s === key ? null : key);
 
   const filtered = conversations.filter(c => {
     const matchSearch  = c.name.toLowerCase().includes(search.toLowerCase()) ||
                          c.preview?.toLowerCase().includes(search.toLowerCase());
     const matchChannel = channelFilter === 'all' || c.channel === channelFilter;
-    const matchStatus  =
-      statusTab === 'Nuevos'     ? c.status === 'nuevo'   :
-      statusTab === 'En curso'   ? c.status === 'open'    :
-      statusTab === 'Pendientes' ? c.status === 'pending' :
-      statusTab === 'Resueltos'  ? c.status === 'done'    : true;
+    const matchStatus  = !statusFilter ||
+      (statusFilter === 'nuevo'   && c.status === 'nuevo')   ||
+      (statusFilter === 'open'    && c.status === 'open')    ||
+      (statusFilter === 'pending' && c.status === 'pending') ||
+      (statusFilter === 'done'    && c.status === 'done');
     return matchSearch && matchChannel && matchStatus;
   });
 
@@ -111,34 +106,21 @@ export default function Sidebar() {
       </div>
 
       <div className="stats-bar">
-        <div className="stat-cell">
-          <div className="stat-n red">{countNew}</div>
-          <div className="stat-lbl">Nuevos</div>
-        </div>
-        <div className="stat-cell">
-          <div className="stat-n yel">{countOpen}</div>
-          <div className="stat-lbl">En curso</div>
-        </div>
-        <div className="stat-cell">
-          <div className="stat-n muted">{countPending}</div>
-          <div className="stat-lbl">Pendientes</div>
-        </div>
-        <div className="stat-cell">
-          <div className="stat-n green">{countDone}</div>
-          <div className="stat-lbl">Resueltos</div>
-        </div>
-      </div>
-
-      {/* Filtro de estado */}
-      <div className="filter-tabs">
-        {STATUS_TABS.map(({ key, label }) => (
-          <button
+        {[
+          { key: 'nuevo',   count: countNew,     label: 'Nuevos',     cls: 'red'   },
+          { key: 'open',    count: countOpen,     label: 'En curso',   cls: 'yel'   },
+          { key: 'pending', count: countPending,  label: 'Pendientes', cls: 'muted' },
+          { key: 'done',    count: countDone,     label: 'Resueltos',  cls: 'green' },
+        ].map(({ key, count, label, cls }) => (
+          <div
             key={key}
-            className={`ftab${statusTab === key ? ' active' : ''}`}
-            onClick={() => setStatusTab(key)}
+            className={`stat-cell${statusFilter === key ? ' stat-active' : ''}`}
+            onClick={() => toggleStatus(key)}
+            title={statusFilter === key ? 'Ver todos' : `Filtrar: ${label}`}
           >
-            {label}
-          </button>
+            <div className={`stat-n ${cls}`}>{count}</div>
+            <div className="stat-lbl">{label}</div>
+          </div>
         ))}
       </div>
 
