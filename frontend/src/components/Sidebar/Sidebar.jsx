@@ -124,6 +124,21 @@ export default function Sidebar() {
         ))}
       </div>
 
+      {/* Indicador de filtro activo */}
+      {statusFilter && (
+        <div className="filter-active-bar">
+          <span>
+            Filtrando: <strong>{{
+              nuevo: 'Nuevos', open: 'En curso', pending: 'Pendientes', done: 'Resueltos'
+            }[statusFilter]}</strong>
+          </span>
+          <button onClick={() => setStatusFilter(null)}>
+            <i className="fa-solid fa-xmark" style={{ marginRight: 4 }} />
+            Ver todos
+          </button>
+        </div>
+      )}
+
       {/* Filtro de canal */}
       <div className="channel-tabs">
         {CHANNEL_TABS.map(({ key, label, icon, color }) => (
