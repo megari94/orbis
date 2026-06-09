@@ -5,36 +5,46 @@ const CHANNEL_CLASS = { WHATSAPP: 'av-wa', INSTAGRAM: 'av-ig', MESSENGER: 'av-fb
 const BADGE_CLASS   = { WHATSAPP: 'ch-wa', INSTAGRAM: 'ch-ig', MESSENGER: 'ch-fb' };
 const BADGE_LABEL   = { WHATSAPP: 'WhatsApp', INSTAGRAM: 'Instagram', MESSENGER: 'Messenger' };
 
-const STATUS_PIP  = { nuevo: 'pip-new', open: 'pip-open', pending: 'pip-pending', done: 'pip-done' };
-const STATUS_TEXT = { nuevo: 'st-new',  open: 'st-open',  pending: 'st-pending',  done: 'st-done' };
+const STATUS_PIP   = { nuevo: 'pip-new', open: 'pip-open', pending: 'pip-pending', done: 'pip-done' };
+const STATUS_TEXT  = { nuevo: 'st-new',  open: 'st-open',  pending: 'st-pending',  done: 'st-done' };
 const STATUS_LABEL = { nuevo: 'nuevo', open: 'en curso', pending: 'pendiente', done: 'resuelto' };
 
-const FILTER_TABS = [
+const STATUS_TABS = [
   { key: 'Todos',      label: 'Todos' },
   { key: 'Nuevos',     label: 'Nuevos' },
   { key: 'En curso',   label: 'En curso' },
-  { key: 'Pendientes', label: 'Pendientes' },
-  { key: 'Resueltos',  label: 'Resueltos' },
+  { key: 'Pendientes', label: 'Pendiente' },
+  { key: 'Resueltos',  label: 'Resuelto' },
+];
+
+const CHANNEL_TABS = [
+  { key: 'all',       label: 'Todos',     icon: 'fa-solid fa-layer-group',          color: 'var(--dim)' },
+  { key: 'WHATSAPP',  label: 'WhatsApp',  icon: 'fa-brands fa-whatsapp',            color: '#25d366'    },
+  { key: 'INSTAGRAM', label: 'Instagram', icon: 'fa-brands fa-instagram',           color: '#e1306c'    },
+  { key: 'MESSENGER', label: 'Messenger', icon: 'fa-brands fa-facebook-messenger',  color: '#0084ff'    },
 ];
 
 export default function Sidebar() {
   const { conversations, activeConversation, selectConversation, loading } = useStore();
-  const [search, setSearch]       = useState('');
-  const [activeTab, setActiveTab] = useState('Todos');
+  const [search,        setSearch]        = useState('');
+  const [statusTab,     setStatusTab]     = useState('Todos');
+  const [channelFilter, setChannelFilter] = useState('all');
 
   const filtered = conversations.filter(c => {
-    const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) ||
-                        c.preview?.toLowerCase().includes(search.toLowerCase());
-    if (activeTab === 'Nuevos')     return matchSearch && c.status === 'nuevo';
-    if (activeTab === 'En curso')   return matchSearch && c.status === 'open';
-    if (activeTab === 'Pendientes') return matchSearch && c.status === 'pending';
-    if (activeTab === 'Resueltos')  return matchSearch && c.status === 'done';
-    return matchSearch;
+    const matchSearch  = c.name.toLowerCase().includes(search.toLowerCase()) ||
+                         c.preview?.toLowerCase().includes(search.toLowerCase());
+    const matchChannel = channelFilter === 'all' || c.channel === channelFilter;
+    const matchStatus  =
+      statusTab === 'Nuevos'     ? c.status === 'nuevo'   :
+      statusTab === 'En curso'   ? c.status === 'open'    :
+      statusTab === 'Pendientes' ? c.status === 'pending' :
+      statusTab === 'Resueltos'  ? c.status === 'done'    : true;
+    return matchSearch && matchChannel && matchStatus;
   });
 
-  const countNew     = conversations.filter(c => c.status === 'nuevo').length;
-  const countOpen    = conversations.filter(c => c.status === 'open').length;
-  const countDone    = conversations.filter(c => c.status === 'done').length;
+  const countNew  = conversations.filter(c => c.status === 'nuevo').length;
+  const countOpen = conversations.filter(c => c.status === 'open').length;
+  const countDone = conversations.filter(c => c.status === 'done').length;
 
   return (
     <aside className="sidebar">
@@ -66,14 +76,31 @@ export default function Sidebar() {
         </div>
       </div>
 
+      {/* Filtro de estado */}
       <div className="filter-tabs">
-        {FILTER_TABS.map(({ key, label }) => (
+        {STATUS_TABS.map(({ key, label }) => (
           <button
             key={key}
-            className={`ftab${activeTab === key ? ' active' : ''}`}
-            onClick={() => setActiveTab(key)}
+            className={`ftab${statusTab === key ? ' active' : ''}`}
+            onClick={() => setStatusTab(key)}
           >
             {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Filtro de canal */}
+      <div className="channel-tabs">
+        {CHANNEL_TABS.map(({ key, label, icon, color }) => (
+          <button
+            key={key}
+            className={`chtab${channelFilter === key ? ' active' : ''}`}
+            style={channelFilter === key ? { borderColor: color, color } : {}}
+            onClick={() => setChannelFilter(key)}
+            title={label}
+          >
+            <i className={icon} />
+            <span>{label}</span>
           </button>
         ))}
       </div>
