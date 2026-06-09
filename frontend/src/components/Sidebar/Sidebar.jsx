@@ -1,5 +1,50 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import useStore from '../../store/useStore';
+
+const SIDEBAR_MIN = 220;
+const SIDEBAR_MAX = 480;
+const SIDEBAR_DEFAULT = 272;
+
+function useSidebarResize() {
+  const [width, setWidth] = useState(
+    () => parseInt(localStorage.getItem('sidebarWidth') || SIDEBAR_DEFAULT, 10)
+  );
+  const dragging = useRef(false);
+  const startX   = useRef(0);
+  const startW   = useRef(0);
+
+  const onMouseDown = useCallback((e) => {
+    dragging.current = true;
+    startX.current   = e.clientX;
+    startW.current   = width;
+    document.body.style.cursor    = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }, [width]);
+
+  useEffect(() => {
+    const onMouseMove = (e) => {
+      if (!dragging.current) return;
+      const delta  = e.clientX - startX.current;
+      const newW   = Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, startW.current + delta));
+      setWidth(newW);
+    };
+    const onMouseUp = () => {
+      if (!dragging.current) return;
+      dragging.current = false;
+      document.body.style.cursor     = '';
+      document.body.style.userSelect = '';
+      setWidth(w => { localStorage.setItem('sidebarWidth', w); return w; });
+    };
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup',   onMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup',   onMouseUp);
+    };
+  }, []);
+
+  return { width, onMouseDown };
+}
 
 const CHANNEL_CLASS = { WHATSAPP: 'av-wa', INSTAGRAM: 'av-ig', MESSENGER: 'av-fb' };
 const BADGE_CLASS   = { WHATSAPP: 'ch-wa', INSTAGRAM: 'ch-ig', MESSENGER: 'ch-fb' };
@@ -29,6 +74,7 @@ export default function Sidebar() {
   const [search,        setSearch]        = useState('');
   const [statusTab,     setStatusTab]     = useState('Todos');
   const [channelFilter, setChannelFilter] = useState('all');
+  const { width, onMouseDown } = useSidebarResize();
 
   const filtered = conversations.filter(c => {
     const matchSearch  = c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -47,7 +93,9 @@ export default function Sidebar() {
   const countDone = conversations.filter(c => c.status === 'done').length;
 
   return (
-    <aside className="sidebar">
+    <aside className="sidebar" style={{ width, minWidth: width }}>
+      {/* Handle de resize — arrastrá para cambiar el ancho */}
+      <div className="sidebar-resizer" onMouseDown={onMouseDown} title="Arrastrá para redimensionar" />
       <div className="sidebar-head">
         <div className="sidebar-title">Conversaciones</div>
         <div className="search-wrap">
