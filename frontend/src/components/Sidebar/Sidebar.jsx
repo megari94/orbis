@@ -9,7 +9,13 @@ const STATUS_PIP  = { nuevo: 'pip-new', open: 'pip-open', pending: 'pip-pending'
 const STATUS_TEXT = { nuevo: 'st-new',  open: 'st-open',  pending: 'st-pending',  done: 'st-done' };
 const STATUS_LABEL = { nuevo: 'nuevo', open: 'en curso', pending: 'pendiente', done: 'resuelto' };
 
-const FILTER_TABS = ['Todos', 'Nuevos', 'Pendientes', 'Míos'];
+const FILTER_TABS = [
+  { key: 'Todos',      label: 'Todos' },
+  { key: 'Nuevos',     label: 'Nuevos' },
+  { key: 'En curso',   label: 'En curso' },
+  { key: 'Pendientes', label: 'Pendientes' },
+  { key: 'Resueltos',  label: 'Resueltos' },
+];
 
 export default function Sidebar() {
   const { conversations, activeConversation, selectConversation, loading } = useStore();
@@ -17,15 +23,18 @@ export default function Sidebar() {
   const [activeTab, setActiveTab] = useState('Todos');
 
   const filtered = conversations.filter(c => {
-    const matchSearch = c.name.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) ||
+                        c.preview?.toLowerCase().includes(search.toLowerCase());
     if (activeTab === 'Nuevos')     return matchSearch && c.status === 'nuevo';
+    if (activeTab === 'En curso')   return matchSearch && c.status === 'open';
     if (activeTab === 'Pendientes') return matchSearch && c.status === 'pending';
+    if (activeTab === 'Resueltos')  return matchSearch && c.status === 'done';
     return matchSearch;
   });
 
-  const countNew    = conversations.filter(c => c.status === 'nuevo').length;
-  const countOpen   = conversations.filter(c => c.status === 'open').length;
-  const countDone   = conversations.filter(c => c.status === 'done').length;
+  const countNew     = conversations.filter(c => c.status === 'nuevo').length;
+  const countOpen    = conversations.filter(c => c.status === 'open').length;
+  const countDone    = conversations.filter(c => c.status === 'done').length;
 
   return (
     <aside className="sidebar">
@@ -58,13 +67,13 @@ export default function Sidebar() {
       </div>
 
       <div className="filter-tabs">
-        {FILTER_TABS.map(tab => (
+        {FILTER_TABS.map(({ key, label }) => (
           <button
-            key={tab}
-            className={`ftab${activeTab === tab ? ' active' : ''}`}
-            onClick={() => setActiveTab(tab)}
+            key={key}
+            className={`ftab${activeTab === key ? ' active' : ''}`}
+            onClick={() => setActiveTab(key)}
           >
-            {tab}
+            {label}
           </button>
         ))}
       </div>

@@ -211,15 +211,23 @@ textarea { resize: none; }
   background: var(--bg2); flex-shrink: 0;
 }
 .spill {
-  font-size: 14px; font-weight: 500; padding: 3px 11px;
-  border-radius: 3px; border: 1px solid; cursor: pointer; transition: all .15s;
+  font-size: 12px; font-weight: 500; padding: 4px 11px;
+  border-radius: 20px; border: 1px solid; cursor: pointer; transition: all .15s;
   font-family: 'Syne', sans-serif; letter-spacing: .03em; background: transparent;
+  opacity: .4;
 }
-.spill:hover { opacity: .75; }
-.spill-new     { border-color: var(--red);   color: var(--red-light); }
-.spill-open    { border-color: #7a6030;       color: #c8a040;   opacity: .45; }
-.spill-pending { border-color: var(--dim);    color: var(--muted); opacity: .45; }
-.spill-done    { border-color: var(--green);  color: var(--green-light); opacity: .45; }
+.spill:hover:not(.spill-active) { opacity: .7; }
+.spill-new     { border-color: var(--red);    color: var(--red-light); }
+.spill-open    { border-color: #7a6030;        color: #c8a040; }
+.spill-pending { border-color: var(--dim);     color: var(--muted); }
+.spill-done    { border-color: var(--green);   color: var(--green-light); }
+
+/* Estado activo — lleno y destacado */
+.spill-active            { opacity: 1 !important; cursor: default; font-weight: 700; }
+.spill-new.spill-active  { background: rgba(220,50,50,.18);  border-color: var(--red);   color: var(--red-light); }
+.spill-open.spill-active { background: rgba(200,160,64,.15); border-color: #c8a040;      color: #c8a040; }
+.spill-pending.spill-active { background: rgba(120,120,140,.18); border-color: #888;     color: #aaa; }
+.spill-done.spill-active { background: rgba(76,175,80,.15);  border-color: var(--green); color: var(--green-light); }
 .high-prio {
   margin-left: auto; font-size: 14px; padding: 3px 10px; border-radius: 3px;
   background: var(--red-bg); color: var(--red-light); border: 1px solid var(--red-border);
