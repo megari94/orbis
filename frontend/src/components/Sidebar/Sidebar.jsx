@@ -18,10 +18,10 @@ const STATUS_TABS = [
 ];
 
 const CHANNEL_TABS = [
-  { key: 'all',       label: 'Todos',     icon: 'fa-solid fa-layer-group',          color: 'var(--dim)' },
-  { key: 'WHATSAPP',  label: 'WhatsApp',  icon: 'fa-brands fa-whatsapp',            color: '#25d366'    },
-  { key: 'INSTAGRAM', label: 'Instagram', icon: 'fa-brands fa-instagram',           color: '#e1306c'    },
-  { key: 'MESSENGER', label: 'Messenger', icon: 'fa-brands fa-facebook-messenger',  color: '#0084ff'    },
+  { key: 'all',       label: 'Todos',  icon: 'fa-solid fa-layer-group',         color: 'var(--cream)' },
+  { key: 'WHATSAPP',  label: 'WA',     icon: 'fa-brands fa-whatsapp',           color: '#25d366'      },
+  { key: 'INSTAGRAM', label: 'IG',     icon: 'fa-brands fa-instagram',          color: '#e1306c'      },
+  { key: 'MESSENGER', label: 'MSG',    icon: 'fa-brands fa-facebook-messenger', color: '#0084ff'      },
 ];
 
 export default function Sidebar() {
