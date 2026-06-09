@@ -135,15 +135,18 @@ export class N8nService {
     });
 
     // ── Lógica automática de estado ───────────────────────────────────────────
-    // PENDIENTE o RESUELTO + nuevo mensaje del cliente → NUEVO (reapertura)
-    // NUEVO u OPEN → sin cambio (ya está siendo atendido o en espera)
-    const statusOnIncoming: Record<string, string> = {
-      NEW:      'NEW',
-      OPEN:     'OPEN',
-      PENDING:  'NEW',   // cliente respondió mientras esperábamos → reabrir
-      RESOLVED: 'NEW',   // caso cerrado, cliente volvió → reabrir
-    };
-    const newStatus = statusOnIncoming[conv.status] ?? 'NEW';
+    // PENDIENTE o RESUELTO + nuevo mensaje → NUEVO (reapertura)
+    // EN CURSO + más de 12hs sin actividad → NUEVO (cliente volvió al día siguiente)
+    // EN CURSO + dentro de 12hs → se mantiene EN CURSO
+    const REOPEN_HOURS = 12;
+    const hoursSinceLastMsg = conv.lastMsgAt
+      ? (Date.now() - new Date(conv.lastMsgAt).getTime()) / 3_600_000
+      : 999;
+
+    let newStatus: string;
+    if (conv.status === 'NEW')                                    newStatus = 'NEW';
+    else if (conv.status === 'OPEN' && hoursSinceLastMsg < REOPEN_HOURS) newStatus = 'OPEN';
+    else newStatus = 'NEW'; // PENDING, RESOLVED, o OPEN con +12hs → reabrir
 
     await this.prisma.conversation.update({
       where: { id: conversationId },

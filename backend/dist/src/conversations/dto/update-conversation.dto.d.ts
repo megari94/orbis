@@ -4,4 +4,5 @@ export declare class UpdateConversationDto {
     priority?: Priority;
     assignedTo?: string;
     tags?: string[];
+    unreadCount?: number;
 }

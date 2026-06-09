@@ -123,13 +123,17 @@ let N8nService = N8nService_1 = class N8nService {
                 channel: conv.channel,
             },
         });
-        const statusOnIncoming = {
-            NEW: 'NEW',
-            OPEN: 'OPEN',
-            PENDING: 'NEW',
-            RESOLVED: 'NEW',
-        };
-        const newStatus = statusOnIncoming[conv.status] ?? 'NEW';
+        const REOPEN_HOURS = 12;
+        const hoursSinceLastMsg = conv.lastMsgAt
+            ? (Date.now() - new Date(conv.lastMsgAt).getTime()) / 3_600_000
+            : 999;
+        let newStatus;
+        if (conv.status === 'NEW')
+            newStatus = 'NEW';
+        else if (conv.status === 'OPEN' && hoursSinceLastMsg < REOPEN_HOURS)
+            newStatus = 'OPEN';
+        else
+            newStatus = 'NEW';
         await this.prisma.conversation.update({
             where: { id: conversationId },
             data: {

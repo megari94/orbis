@@ -90,11 +90,18 @@ const useStore = create((set, get) => ({
       set({ activeConversation: mapped });
 
       // ── Lógica automática: NUEVO → EN CURSO al abrir ──────────────────────
-      // El operador abrió la conversación → pasa a "en curso" automáticamente
-      if (mapped.status === 'nuevo') {
+      const updates = {};
+      if (mapped.status === 'nuevo') updates.status = 'OPEN';
+      if (mapped.unread > 0)         updates.unreadCount = 0;
+
+      if (Object.keys(updates).length > 0) {
         try {
-          await updateConversation(conv.id, { status: 'OPEN' });
-          const updated = { ...mapped, status: 'open' };
+          await updateConversation(conv.id, updates);
+          const updated = {
+            ...mapped,
+            ...(updates.status     ? { status: 'open' } : {}),
+            ...(updates.unreadCount !== undefined ? { unread: 0 } : {}),
+          };
           set(s => ({
             activeConversation: updated,
             conversations: s.conversations.map(c => c.id === conv.id ? updated : c),
