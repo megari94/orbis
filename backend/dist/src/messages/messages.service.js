@@ -83,7 +83,7 @@ let MessagesService = MessagesService_1 = class MessagesService {
             this.logger.warn('WhatsApp: sin número de destino');
             return;
         }
-        const toClean = to.replace(/^\+/, '');
+        const toClean = this.normalizeArgentineNumber(to);
         const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
         const body = {
             messaging_product: 'whatsapp',
@@ -106,6 +106,21 @@ let MessagesService = MessagesService_1 = class MessagesService {
             throw new Error(`WhatsApp API ${res.status}: ${data?.error?.message ?? 'unknown'}`);
         }
         this.logger.log(`WhatsApp enviado a ${toClean}: ${res.status}`);
+    }
+    normalizeArgentineNumber(phone) {
+        const n = phone.replace(/^\+/, '');
+        if (!n.startsWith('549') || n.length !== 13)
+            return n;
+        const afterPrefix = n.slice(2);
+        if (afterPrefix.startsWith('911') && afterPrefix.length === 11) {
+            return '5411' + '15' + afterPrefix.slice(3);
+        }
+        if (afterPrefix.length === 11) {
+            const area = afterPrefix.slice(1, 4);
+            const local = afterPrefix.slice(4);
+            return '54' + area + '15' + local;
+        }
+        return n;
     }
     async sendFacebookMessage(accessToken, pageId, recipientId, content) {
         if (!recipientId) {

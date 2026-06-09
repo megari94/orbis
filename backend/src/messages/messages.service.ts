@@ -87,9 +87,8 @@ export class MessagesService {
   private async sendWhatsApp(accessToken: string, phoneNumberId: string, to: string | null | undefined, content: string) {
     if (!to) { this.logger.warn('WhatsApp: sin número de destino'); return; }
 
-    // Quitar el "+" si lo trae — enviar con el formato exacto que usa WhatsApp
-    // (Para Argentina incluye el 9: 549XXXXXXXXXX)
-    const toClean = to.replace(/^\+/, '');
+    // Normalizar número argentino: WhatsApp envía 549AAANNNNNNN pero Meta espera 54AAA15NNNNNNN
+    const toClean = this.normalizeArgentineNumber(to);
 
     const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
     const body = {
@@ -116,6 +115,32 @@ export class MessagesService {
     }
 
     this.logger.log(`WhatsApp enviado a ${toClean}: ${res.status}`);
+  }
+
+  // ── Normalización de números argentinos ──────────────────────────────────
+  // WhatsApp: 549AAANNNNNNN (con 9, sin 15)
+  // Meta API: 54AAA15NNNNNNN (sin 9, con 15)
+  // Ej: 5493624175506 → 54362154175506
+  private normalizeArgentineNumber(phone: string): string {
+    const n = phone.replace(/^\+/, '');
+
+    if (!n.startsWith('549') || n.length !== 13) return n;
+
+    const afterPrefix = n.slice(2); // '9AAANNNNNNN' — 11 dígitos
+
+    // Buenos Aires: 9 + 11 + 8 dígitos
+    if (afterPrefix.startsWith('911') && afterPrefix.length === 11) {
+      return '5411' + '15' + afterPrefix.slice(3);
+    }
+
+    // Interior (área de 3 dígitos): 9 + AAA + 7 dígitos
+    if (afterPrefix.length === 11) {
+      const area  = afterPrefix.slice(1, 4); // 3 dígitos de área
+      const local = afterPrefix.slice(4);    // 7 dígitos locales
+      return '54' + area + '15' + local;
+    }
+
+    return n;
   }
 
   // ── Instagram / Messenger (Facebook Graph API) ────────────────────────────

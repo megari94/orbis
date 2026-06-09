@@ -26,5 +26,6 @@ export declare class MessagesService {
     }>;
     private sendViaChannel;
     private sendWhatsApp;
+    private normalizeArgentineNumber;
     private sendFacebookMessage;
 }
