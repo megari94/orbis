@@ -83,10 +83,7 @@ let MessagesService = MessagesService_1 = class MessagesService {
             this.logger.warn('WhatsApp: sin número de destino');
             return;
         }
-        let toClean = to.replace(/^\+/, '');
-        if (toClean.startsWith('549') && toClean.length === 13) {
-            toClean = '54' + toClean.slice(3);
-        }
+        const toClean = to.replace(/^\+/, '');
         const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
         const body = {
             messaging_product: 'whatsapp',
