@@ -4,6 +4,7 @@ import useStore from '../../store/useStore';
 const BADGE_CLASS = { WHATSAPP: 'ch-wa', INSTAGRAM: 'ch-ig', MESSENGER: 'ch-fb' };
 const BADGE_SHORT = { WHATSAPP: 'WA', INSTAGRAM: 'IG', MESSENGER: 'FB' };
 const AV_CLASS    = { WHATSAPP: 'av-wa', INSTAGRAM: 'av-ig', MESSENGER: 'av-fb' };
+const AV_ICON     = { WHATSAPP: 'fa-brands fa-whatsapp', INSTAGRAM: 'fa-brands fa-instagram', MESSENGER: 'fa-brands fa-facebook-messenger' };
 
 function DaySep({ text }) {
   return <div className="day-sep">{text}</div>;
@@ -41,8 +42,8 @@ function MessageRow({ msg, conv, searchQuery }) {
   );
 
   const inAvatar = (
-    <div className={`av ${AV_CLASS[conv?.channel] || 'av-mul'} msg-av`} style={{ width: 30, height: 30, fontSize: 12 }}>
-      {conv?.initials || '?'}
+    <div className={`av ${AV_CLASS[conv?.channel] || 'av-mul'} msg-av`} style={{ width: 30, height: 30, fontSize: 14 }}>
+      <i className={AV_ICON[conv?.channel] || 'fa-solid fa-comment'} />
     </div>
   );
 
