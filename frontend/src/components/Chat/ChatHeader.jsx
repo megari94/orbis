@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import useStore from '../../store/useStore';
 
 const CHANNEL_CLASS = { WHATSAPP: 'av-wa', INSTAGRAM: 'av-ig', MESSENGER: 'av-fb' };
+const CHANNEL_ICON  = { WHATSAPP: 'fa-brands fa-whatsapp', INSTAGRAM: 'fa-brands fa-instagram', MESSENGER: 'fa-brands fa-facebook-messenger' };
 const BADGE_CLASS   = { WHATSAPP: 'ch-wa', INSTAGRAM: 'ch-ig', MESSENGER: 'ch-fb' };
 const BADGE_LABEL   = { WHATSAPP: 'WhatsApp', INSTAGRAM: 'Instagram', MESSENGER: 'Messenger' };
 
@@ -43,10 +44,10 @@ export default function ChatHeader({ onEditContact, onSearch }) {
 
   return (
     <div className="chat-header">
-      {/* Avatar — solo visual, sin acción */}
+      {/* Avatar — logo de la red social */}
       <div className={`av ${CHANNEL_CLASS[channel] || 'av-mul'}`}
-        style={{ width: 40, height: 40, fontSize: 14 }}>
-        {initials}
+        style={{ width: 40, height: 40, fontSize: 18 }}>
+        <i className={CHANNEL_ICON[channel] || 'fa-solid fa-comment'} />
       </div>
 
       <div>
