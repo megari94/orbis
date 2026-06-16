@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import useStore from '../../store/useStore';
 
 const AV_CLASS = { WHATSAPP: 'av-wa', INSTAGRAM: 'av-ig', MESSENGER: 'av-fb' };
@@ -13,8 +14,11 @@ function formatSince(iso) {
   return new Date(iso).toLocaleDateString('es-AR', { month: 'short', year: 'numeric' });
 }
 
-export default function InfoPanel() {
+export default function InfoPanel({ onSchedule }) {
   const { activeConversation } = useStore();
+  const [notes,    setNotes]    = useState([]);
+  const [noteText, setNoteText] = useState('');
+
   if (!activeConversation) return null;
 
   const { name, initials, channel, contact } = activeConversation;
@@ -25,13 +29,47 @@ export default function InfoPanel() {
   const since    = formatSince(contact?.createdAt);
   const channels = contact?.channels ?? [];
 
+  const addNote = () => {
+    const text = noteText.trim();
+    if (!text) return;
+    setNotes(n => [...n, { id: Date.now(), text }]);
+    setNoteText('');
+  };
+
+  const handleNoteKey = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      addNote();
+    }
+  };
+
+  const removeNote = (id) => setNotes(n => n.filter(x => x.id !== id));
+
   return (
     <aside className="info-panel">
 
       <div className="ip-section">
-        <div className="ip-label">Contacto</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <div className="ip-label" style={{ marginBottom: 0 }}>Contacto</div>
+          {/* Botón agendar con datos del contacto (#1) */}
+          <button
+            className="hbtn"
+            title="Agendar turno"
+            style={{ fontSize: 12, padding: '4px 10px', borderRadius: 6, background: 'var(--bg3)', border: '1px solid var(--border2)', color: 'var(--cream-dim)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
+            onClick={() => onSchedule?.({ name, email: contact?.email, address: contact?.location, phone: contact?.phone })}
+          >
+            <i className="fa-solid fa-calendar-plus" />
+            Agendar
+          </button>
+        </div>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <div className={`av ${AV_CLASS[channel] || 'av-mul'}`} style={{ width: 42, height: 42, fontSize: 14 }}>
+          <div
+            className={`av ${AV_CLASS[channel] || 'av-mul'}`}
+            style={{ width: 42, height: 42, fontSize: 14, cursor: 'pointer' }}
+            title="Agendar turno"
+            onClick={() => onSchedule?.({ name, email: contact?.email, address: contact?.location, phone: contact?.phone })}
+          >
             {initials}
           </div>
           <div>
@@ -62,19 +100,39 @@ export default function InfoPanel() {
         </div>
       </div>
 
+      {/* Notas internas: Enter para guardar, X para eliminar (#9) */}
       <div className="ip-section">
-        <div className="ip-label">Asignado a</div>
-        <select className="assign-sel">
-          <option>Sin asignar</option>
-          <option defaultValue>Vos (admin)</option>
-          <option>Agente: Romina</option>
-          <option>Agente: Tomás</option>
-        </select>
-      </div>
+        <div className="ip-label">Notas internas</div>
 
-      <div className="ip-section">
-        <div className="ip-label">Nota interna</div>
-        <textarea className="note-ta" rows={3} placeholder="Solo visible para el equipo…" />
+        {notes.map(note => (
+          <div key={note.id} style={{
+            display: 'flex', alignItems: 'flex-start', gap: 8,
+            background: 'var(--bg3)', borderRadius: 8, padding: '8px 10px',
+            marginBottom: 6, fontSize: 13, color: 'var(--cream-dim)',
+          }}>
+            <span style={{ flex: 1, lineHeight: 1.5 }}>{note.text}</span>
+            <button
+              onClick={() => removeNote(note.id)}
+              style={{ background: 'none', border: 'none', color: 'var(--dim)', cursor: 'pointer', padding: 0, lineHeight: 1, flexShrink: 0 }}
+              title="Eliminar nota"
+            >
+              <i className="fa-solid fa-xmark" />
+            </button>
+          </div>
+        ))}
+
+        <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end' }}>
+          <textarea
+            className="note-ta"
+            rows={2}
+            placeholder="Escribí y presioná Enter para guardar…"
+            value={noteText}
+            onChange={e => setNoteText(e.target.value)}
+            onKeyDown={handleNoteKey}
+            style={{ flex: 1, resize: 'none' }}
+          />
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--dim)', marginTop: 4 }}>Enter para guardar · Shift+Enter nueva línea</div>
       </div>
 
     </aside>

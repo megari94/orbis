@@ -5,10 +5,12 @@ import SettingsModal from './Settings/SettingsModal';
 import { EditProfileModal, ChangePasswordModal, DeleteAccountModal } from './Profile/ProfileModals';
 import UserAvatar from './Profile/UserAvatar';
 
-const NAV_ITEMS = ['Bandeja', 'Contactos', 'Conocimiento', 'Admin'];
+const NAV_ITEMS = ['Bandeja', 'Contactos'];
 
-export default function TopNav() {
-  const [active,       setActive]       = useState('Bandeja');
+export default function TopNav({ activeTab, onTabChange }) {
+  const [active,       setActive]       = useState(activeTab || 'Bandeja');
+
+  const handleTab = (item) => { setActive(item); onTabChange?.(item); };
   const [showMenu,     setShowMenu]     = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [modal,        setModal]        = useState(null); // 'profile' | 'password' | 'delete'
@@ -47,7 +49,7 @@ export default function TopNav() {
             <button
               key={item}
               className={`nav-pill${active === item ? ' active' : ''}`}
-              onClick={() => setActive(item)}
+              onClick={() => handleTab(item)}
             >
               {item}
             </button>

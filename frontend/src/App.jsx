@@ -8,6 +8,8 @@ import TagStrip from './components/Chat/TagStrip';
 import MessageList from './components/Chat/MessageList';
 import ComposeBox from './components/Chat/ComposeBox';
 import InfoPanel from './components/InfoPanel/InfoPanel';
+import ContactsList from './components/Contacts/ContactsList';
+import ScheduleModal from './components/Schedule/ScheduleModal';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
@@ -27,11 +29,12 @@ function LoadingScreen() {
 
 function MainApp() {
   const { conversations, activeConversation, selectConversation, fetchConversations, refreshConversations, refreshMessages } = useStore();
+  const [activeTab,      setActiveTab]      = useState('Bandeja');
+  const [scheduleData,   setScheduleData]   = useState(null); // null = cerrado
+  const [msgSearch,      setMsgSearch]      = useState('');
 
-  // Carga inicial
   useEffect(() => { fetchConversations(); }, []);
 
-  // Polling: conversaciones cada 5s, mensajes activos cada 4s
   useEffect(() => {
     const convTimer = setInterval(() => refreshConversations(), 5000);
     const msgTimer  = setInterval(() => refreshMessages(),      4000);
@@ -44,28 +47,44 @@ function MainApp() {
     }
   }, [conversations]);
 
+  const openSchedule = (data) => setScheduleData(data || {});
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
-      <TopNav />
+      <TopNav activeTab={activeTab} onTabChange={setActiveTab} />
+
       <div className="main">
-        <Sidebar />
-        <section className="chat-area">
-          {activeConversation ? (
-            <>
-              <ChatHeader />
-              <StatusStrip />
-              <TagStrip />
-              <MessageList />
-              <ComposeBox />
-            </>
-          ) : (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--dim)', fontSize: 14 }}>
-              Seleccioná una conversación para empezar
-            </div>
-          )}
-        </section>
-        {activeConversation && <InfoPanel />}
+        {activeTab === 'Bandeja' ? (
+          <>
+            <Sidebar />
+            <section className="chat-area">
+              {activeConversation ? (
+                <>
+                  <ChatHeader onSchedule={openSchedule} onSearch={setMsgSearch} />
+                  <StatusStrip />
+                  <TagStrip />
+                  <MessageList searchQuery={msgSearch} />
+                  <ComposeBox />
+                </>
+              ) : (
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--dim)', fontSize: 14 }}>
+                  Seleccioná una conversación para empezar
+                </div>
+              )}
+            </section>
+            {activeConversation && <InfoPanel onSchedule={openSchedule} />}
+          </>
+        ) : (
+          /* Vista Contactos (#10) */
+          <section style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <ContactsList />
+          </section>
+        )}
       </div>
+
+      {scheduleData && (
+        <ScheduleModal contact={scheduleData} onClose={() => setScheduleData(null)} />
+      )}
     </div>
   );
 }
@@ -74,18 +93,15 @@ export default function App() {
   const { isAuthenticated, loading } = useAuth();
   const [view, setView] = useState('login');
 
-  // Detectar token de reset en la URL (?resetToken=xxx)
   const resetToken = new URLSearchParams(window.location.search).get('resetToken');
 
   if (loading) return <LoadingScreen />;
 
-  // Si hay token de reset en la URL, mostrar pantalla de nueva contraseña
   if (resetToken) {
     return (
       <ResetPassword
         token={resetToken}
         onDone={() => {
-          // Limpiar el token de la URL y volver al login
           window.history.replaceState({}, '', '/');
           setView('login');
         }}

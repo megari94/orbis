@@ -7,6 +7,11 @@ import { ApiTags } from '@nestjs/swagger';
 export class ContactsController {
   constructor(private readonly svc: ContactsService) {}
 
+  @Get()
+  findAll(@Headers('x-tenant-id') tenantId: string) {
+    return this.svc.findAll(tenantId);
+  }
+
   @Get(':id')
   findOne(
     @Headers('x-tenant-id') tenantId: string,

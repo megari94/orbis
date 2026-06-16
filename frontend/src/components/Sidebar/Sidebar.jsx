@@ -61,25 +61,114 @@ const CHANNEL_TABS = [
   { key: 'MESSENGER', label: 'MSG',    icon: 'fa-brands fa-facebook-messenger', color: '#0084ff'      },
 ];
 
+const QUICK_LABELS = ['Urgente', 'Esperando', 'Presupuesto', 'Seguimiento'];
+
+function LabelMenu({ conv, onClose, onSetLabel }) {
+  const [custom, setCustom] = useState('');
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [onClose]);
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        position: 'absolute', top: 36, right: 4, zIndex: 300,
+        background: 'var(--bg2)', border: '1px solid var(--border2)',
+        borderRadius: 10, minWidth: 180, padding: '8px 0',
+        boxShadow: '0 8px 24px rgba(0,0,0,.5)',
+      }}
+      onClick={e => e.stopPropagation()}
+    >
+      <div style={{ padding: '4px 12px 8px', fontSize: 11, color: 'var(--dim)', textTransform: 'uppercase', letterSpacing: .5 }}>
+        Etiqueta para pendiente
+      </div>
+      {QUICK_LABELS.map(lbl => (
+        <button
+          key={lbl}
+          onClick={() => { onSetLabel(conv.id, lbl); onClose(); }}
+          style={{
+            width: '100%', padding: '8px 12px', background: 'none', border: 'none',
+            color: conv.tag === lbl ? 'var(--cream)' : 'var(--cream-dim)',
+            fontSize: 13, cursor: 'pointer', textAlign: 'left',
+            display: 'flex', alignItems: 'center', gap: 8,
+            fontWeight: conv.tag === lbl ? 600 : 400,
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'none'}
+        >
+          {conv.tag === lbl && <i className="fa-solid fa-check" style={{ fontSize: 10 }} />}
+          {conv.tag !== lbl && <span style={{ width: 14 }} />}
+          {lbl}
+        </button>
+      ))}
+      <div style={{ borderTop: '1px solid var(--border)', margin: '6px 0', padding: '6px 12px 0' }}>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <input
+            type="text"
+            placeholder="Etiqueta personalizada…"
+            value={custom}
+            onChange={e => setCustom(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && custom.trim()) { onSetLabel(conv.id, custom.trim()); onClose(); } }}
+            style={{
+              flex: 1, background: 'var(--bg3)', border: '1px solid var(--border2)',
+              borderRadius: 6, padding: '5px 8px', color: 'var(--cream)',
+              fontSize: 12, outline: 'none',
+            }}
+          />
+          <button
+            onClick={() => { if (custom.trim()) { onSetLabel(conv.id, custom.trim()); onClose(); } }}
+            style={{ background: 'var(--red)', border: 'none', borderRadius: 6, color: '#fff', padding: '5px 8px', cursor: 'pointer', fontSize: 12 }}
+          >OK</button>
+        </div>
+      </div>
+      {conv.tag && (
+        <button
+          onClick={() => { onSetLabel(conv.id, null); onClose(); }}
+          style={{
+            width: '100%', padding: '8px 12px', background: 'none', border: 'none',
+            color: 'var(--dim)', fontSize: 12, cursor: 'pointer', textAlign: 'left',
+            borderTop: '1px solid var(--border)', marginTop: 4,
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'none'}
+        >
+          <i className="fa-solid fa-xmark" style={{ marginRight: 6 }} />
+          Quitar etiqueta
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function Sidebar() {
   const { conversations, activeConversation, selectConversation, loading } = useStore();
   const [search,        setSearch]        = useState('');
-  const [statusFilter,  setStatusFilter]  = useState(null); // null = todos
+  const [statusFilter,  setStatusFilter]  = useState(null);
   const [channelFilter, setChannelFilter] = useState('all');
+  const [labelMenuId,   setLabelMenuId]   = useState(null);
+  // tags locales por conversación (pendiente → etiqueta)
+  const [localTags,     setLocalTags]     = useState({});
   const { width, onMouseDown } = useSidebarResize();
 
-  // Clic en contador → filtra; clic de nuevo → muestra todos
   const toggleStatus = (key) => setStatusFilter(s => s === key ? null : key);
+
+  const setLabel = (convId, label) => {
+    setLocalTags(t => ({ ...t, [convId]: label }));
+    // TODO: persistir en API
+  };
+
+  const getTag = (conv) => localTags[conv.id] ?? conv.tag ?? null;
 
   const filtered = conversations.filter(c => {
     const matchSearch  = c.name.toLowerCase().includes(search.toLowerCase()) ||
                          c.preview?.toLowerCase().includes(search.toLowerCase());
     const matchChannel = channelFilter === 'all' || c.channel === channelFilter;
-    const matchStatus  = !statusFilter ||
-      (statusFilter === 'nuevo'   && c.status === 'nuevo')   ||
-      (statusFilter === 'open'    && c.status === 'open')    ||
-      (statusFilter === 'pending' && c.status === 'pending') ||
-      (statusFilter === 'done'    && c.status === 'done');
+    const matchStatus  = !statusFilter || c.status === statusFilter;
     return matchSearch && matchChannel && matchStatus;
   });
 
@@ -90,7 +179,6 @@ export default function Sidebar() {
 
   return (
     <aside className="sidebar" style={{ width, minWidth: width }}>
-      {/* Handle de resize — arrastrá para cambiar el ancho */}
       <div className="sidebar-resizer" onMouseDown={onMouseDown} title="Arrastrá para redimensionar" />
       <div className="sidebar-head">
         <div className="sidebar-title">Conversaciones</div>
@@ -124,7 +212,6 @@ export default function Sidebar() {
         ))}
       </div>
 
-      {/* Indicador de filtro activo */}
       {statusFilter && (
         <div className="filter-active-bar">
           <span>
@@ -139,7 +226,6 @@ export default function Sidebar() {
         </div>
       )}
 
-      {/* Filtro de canal */}
       <div className="channel-tabs">
         {CHANNEL_TABS.map(({ key, label, icon, color }) => (
           <button
@@ -166,41 +252,68 @@ export default function Sidebar() {
             {search ? 'Sin resultados para esa búsqueda' : 'No hay conversaciones'}
           </div>
         )}
-        {!loading && filtered.map(conv => (
-          <div
-            key={conv.id}
-            className={`conv-item${activeConversation?.id === conv.id ? ' active' : ''}`}
-            onClick={() => selectConversation(conv)}
-          >
-            <div className={`av ${CHANNEL_CLASS[conv.channel] || 'av-mul'}`}>
-              {conv.initials}
-            </div>
-            <div className="conv-body">
-              <div className="conv-row1">
-                <span className="conv-name">{conv.name}</span>
-                <span className="conv-time">{conv.time}</span>
+        {!loading && filtered.map(conv => {
+          const tag = getTag(conv);
+          return (
+            <div
+              key={conv.id}
+              className={`conv-item${activeConversation?.id === conv.id ? ' active' : ''}`}
+              onClick={() => selectConversation(conv)}
+              style={{ position: 'relative' }}
+            >
+              <div className={`av ${CHANNEL_CLASS[conv.channel] || 'av-mul'}`}>
+                {conv.initials}
               </div>
-              <div className="conv-preview">{conv.preview}</div>
-              <div className="conv-meta">
-                <span className={`ch-badge ${BADGE_CLASS[conv.channel] || ''}`}>
-                  {BADGE_LABEL[conv.channel] || conv.channel}
-                </span>
-                {conv.tag && <span className="prio-tag">{conv.tag}</span>}
-                {conv.status && !conv.tag && (
-                  <>
-                    <span className={`status-pip ${STATUS_PIP[conv.status] || ''}`} />
-                    <span className={`status-text ${STATUS_TEXT[conv.status] || ''}`}>
-                      {STATUS_LABEL[conv.status] || conv.status}
-                    </span>
-                  </>
-                )}
-                {conv.unread > 0 && (
-                  <span className="unread-badge">{conv.unread}</span>
-                )}
+              <div className="conv-body">
+                <div className="conv-row1">
+                  <span className="conv-name">{conv.name}</span>
+                  <span className="conv-time">{conv.time}</span>
+                </div>
+                <div className="conv-preview">{conv.preview}</div>
+                <div className="conv-meta">
+                  <span className={`ch-badge ${BADGE_CLASS[conv.channel] || ''}`}>
+                    {BADGE_LABEL[conv.channel] || conv.channel}
+                  </span>
+                  {tag
+                    ? <span className="prio-tag">{tag}</span>
+                    : conv.status && (
+                        <>
+                          <span className={`status-pip ${STATUS_PIP[conv.status] || ''}`} />
+                          <span className={`status-text ${STATUS_TEXT[conv.status] || ''}`}>
+                            {STATUS_LABEL[conv.status] || conv.status}
+                          </span>
+                        </>
+                      )
+                  }
+                  {conv.unread > 0 && (
+                    <span className="unread-badge">{conv.unread}</span>
+                  )}
+                </div>
               </div>
+
+              {/* Botón etiqueta para pendiente (#3) */}
+              {conv.status === 'pending' && (
+                <div style={{ position: 'relative' }}>
+                  <button
+                    className="hbtn"
+                    title="Agregar etiqueta"
+                    style={{ fontSize: 11, opacity: .6 }}
+                    onClick={e => { e.stopPropagation(); setLabelMenuId(id => id === conv.id ? null : conv.id); }}
+                  >
+                    <i className="fa-solid fa-tag" />
+                  </button>
+                  {labelMenuId === conv.id && (
+                    <LabelMenu
+                      conv={{ ...conv, tag }}
+                      onClose={() => setLabelMenuId(null)}
+                      onSetLabel={setLabel}
+                    />
+                  )}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </aside>
   );

@@ -18,24 +18,24 @@ function InternalNote({ text }) {
   );
 }
 
-function MessageRow({ msg, conv }) {
+function highlight(html, query) {
+  if (!query) return html;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return html.replace(new RegExp(`(${escaped})`, 'gi'), '<mark style="background:var(--yel,#f59e0b);color:#000;border-radius:2px;padding:0 2px">$1</mark>');
+}
+
+function MessageRow({ msg, conv, searchQuery }) {
   const isIn  = msg.dir === 'in';
   const isBot = msg.dir === 'out' && msg.bot;
 
   const botAvatar = (
-    <div
-      className="msg-av"
-      style={{ background: 'var(--green-bg)', border: '1px solid var(--green-border)', width: 30, height: 30 }}
-    >
+    <div className="msg-av" style={{ background: 'var(--green-bg)', border: '1px solid var(--green-border)', width: 30, height: 30 }}>
       <i className="fa-solid fa-robot" style={{ fontSize: 12, color: 'var(--green-light)' }} />
     </div>
   );
 
   const agentAvatar = (
-    <div
-      className="av av-mul msg-av"
-      style={{ width: 30, height: 30, fontSize: 11, border: '1px solid var(--border2)' }}
-    >
+    <div className="av av-mul msg-av" style={{ width: 30, height: 30, fontSize: 11, border: '1px solid var(--border2)' }}>
       AD
     </div>
   );
@@ -55,7 +55,7 @@ function MessageRow({ msg, conv }) {
       <div className="msg-group">
         <div
           className={`bubble${isBot ? ' bubble-bot' : ''}${msg.ghost ? ' ghost-bubble' : ''}`}
-          dangerouslySetInnerHTML={{ __html: msg.text }}
+          dangerouslySetInnerHTML={{ __html: highlight(msg.text, searchQuery) }}
         />
         <div className="msg-meta">
           {isIn && msg.channel && (
@@ -77,21 +77,30 @@ function MessageRow({ msg, conv }) {
   );
 }
 
-export default function MessageList() {
+export default function MessageList({ searchQuery }) {
   const { messages, activeConversation } = useStore();
   const bottomRef = useRef(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (!searchQuery) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, searchQuery]);
+
+  const filtered = searchQuery
+    ? messages.filter(m => m.text?.toLowerCase().includes(searchQuery.toLowerCase()))
+    : messages;
 
   return (
     <div className="messages">
-      {messages.map(msg => {
+      {filtered.map(msg => {
         if (msg.type === 'day-sep')  return <DaySep key={msg.id} text={msg.text} />;
         if (msg.type === 'internal') return <InternalNote key={msg.id} text={msg.text} />;
-        return <MessageRow key={msg.id} msg={msg} conv={activeConversation} />;
+        return <MessageRow key={msg.id} msg={msg} conv={activeConversation} searchQuery={searchQuery} />;
       })}
+      {searchQuery && filtered.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--dim)', fontSize: 13 }}>
+          Sin mensajes que coincidan con "<strong style={{ color: 'var(--cream-dim)' }}>{searchQuery}</strong>"
+        </div>
+      )}
       <div ref={bottomRef} />
     </div>
   );
