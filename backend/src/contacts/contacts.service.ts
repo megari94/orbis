@@ -21,4 +21,17 @@ export class ContactsService {
     if (!contact) throw new NotFoundException('Contact not found');
     return contact;
   }
+
+  async update(tenantId: string, id: string, data: { name?: string; email?: string; location?: string }) {
+    const contact = await this.prisma.contact.findFirst({ where: { id, tenantId } });
+    if (!contact) throw new NotFoundException('Contact not found');
+    return this.prisma.contact.update({
+      where: { id },
+      data: {
+        ...(data.name     !== undefined ? { name: data.name }         : {}),
+        ...(data.email    !== undefined ? { email: data.email }       : {}),
+        ...(data.location !== undefined ? { location: data.location } : {}),
+      },
+    });
+  }
 }

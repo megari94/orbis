@@ -9,7 +9,7 @@ import MessageList from './components/Chat/MessageList';
 import ComposeBox from './components/Chat/ComposeBox';
 import InfoPanel from './components/InfoPanel/InfoPanel';
 import ContactsList from './components/Contacts/ContactsList';
-import ScheduleModal from './components/Schedule/ScheduleModal';
+import ContactModal from './components/Contact/ContactModal';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
@@ -30,7 +30,7 @@ function LoadingScreen() {
 function MainApp() {
   const { conversations, activeConversation, selectConversation, fetchConversations, refreshConversations, refreshMessages } = useStore();
   const [activeTab,      setActiveTab]      = useState('Bandeja');
-  const [scheduleData,   setScheduleData]   = useState(null); // null = cerrado
+  const [contactData,    setContactData]    = useState(null); // null = cerrado
   const [msgSearch,      setMsgSearch]      = useState('');
 
   useEffect(() => { fetchConversations(); }, []);
@@ -47,7 +47,7 @@ function MainApp() {
     }
   }, [conversations]);
 
-  const openSchedule = (data) => setScheduleData(data || {});
+  const openContact = (data) => setContactData(data || {});
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
@@ -60,7 +60,7 @@ function MainApp() {
             <section className="chat-area">
               {activeConversation ? (
                 <>
-                  <ChatHeader onSchedule={openSchedule} onSearch={setMsgSearch} />
+                  <ChatHeader onEditContact={openContact} onSearch={setMsgSearch} />
                   <StatusStrip />
                   <TagStrip />
                   <MessageList searchQuery={msgSearch} />
@@ -72,7 +72,7 @@ function MainApp() {
                 </div>
               )}
             </section>
-            {activeConversation && <InfoPanel onSchedule={openSchedule} />}
+            {activeConversation && <InfoPanel />}
           </>
         ) : (
           /* Vista Contactos (#10) */
@@ -82,8 +82,12 @@ function MainApp() {
         )}
       </div>
 
-      {scheduleData && (
-        <ScheduleModal contact={scheduleData} onClose={() => setScheduleData(null)} />
+      {contactData && (
+        <ContactModal
+          contact={contactData}
+          onClose={() => setContactData(null)}
+          onSaved={() => setContactData(null)}
+        />
       )}
     </div>
   );

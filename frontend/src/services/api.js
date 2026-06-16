@@ -51,8 +51,9 @@ export const sendMessage = (conversationId, content, isInternal = false) =>
   api.post(`/conversations/${conversationId}/messages`, { content, isInternal }).then(r => r.data);
 
 // ── Contacts ──────────────────────────────────────────────────────────────────
-export const getContacts = ()    => api.get('/contacts').then(r => r.data);
-export const getContact  = (id) => api.get(`/contacts/${id}`).then(r => r.data);
+export const getContacts    = ()          => api.get('/contacts').then(r => r.data);
+export const getContact     = (id)        => api.get(`/contacts/${id}`).then(r => r.data);
+export const updateContact  = (id, data)  => api.patch(`/contacts/${id}`, data).then(r => r.data);
 
 // ── User profile ─────────────────────────────────────────────────────────────
 export const updateProfileApi  = (data) => api.patch('/auth/profile',  data).then(r => r.data);

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Headers } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Body, Headers } from '@nestjs/common';
 import { ContactsService } from './contacts.service';
 import { ApiTags } from '@nestjs/swagger';
 
@@ -18,5 +18,14 @@ export class ContactsController {
     @Param('id') id: string,
   ) {
     return this.svc.findOne(tenantId, id);
+  }
+
+  @Patch(':id')
+  update(
+    @Headers('x-tenant-id') tenantId: string,
+    @Param('id') id: string,
+    @Body() body: { name?: string; email?: string; location?: string },
+  ) {
+    return this.svc.update(tenantId, id, body);
   }
 }

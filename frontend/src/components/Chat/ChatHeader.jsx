@@ -5,7 +5,7 @@ const CHANNEL_CLASS = { WHATSAPP: 'av-wa', INSTAGRAM: 'av-ig', MESSENGER: 'av-fb
 const BADGE_CLASS   = { WHATSAPP: 'ch-wa', INSTAGRAM: 'ch-ig', MESSENGER: 'ch-fb' };
 const BADGE_LABEL   = { WHATSAPP: 'WhatsApp', INSTAGRAM: 'Instagram', MESSENGER: 'Messenger' };
 
-export default function ChatHeader({ onSchedule, onSearch }) {
+export default function ChatHeader({ onEditContact, onSearch }) {
   const { activeConversation } = useStore();
   const [showMenu,   setShowMenu]   = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -30,7 +30,6 @@ export default function ChatHeader({ onSchedule, onSearch }) {
   const handleDeleteChat = () => {
     setShowMenu(false);
     if (confirm(`¿Eliminar la conversación con ${name}? El contacto no se eliminará.`)) {
-      // TODO: llamar API delete conversation
       console.log('Eliminar conversación', activeConversation.id);
     }
   };
@@ -44,13 +43,9 @@ export default function ChatHeader({ onSchedule, onSearch }) {
 
   return (
     <div className="chat-header">
-      {/* Logo de contacto → agendar (#8) */}
-      <div
-        className={`av ${CHANNEL_CLASS[channel] || 'av-mul'}`}
-        style={{ width: 40, height: 40, fontSize: 14, cursor: 'pointer' }}
-        title="Agendar turno"
-        onClick={() => onSchedule?.({ name, email: contact?.email, address: contact?.location })}
-      >
+      {/* Avatar — solo visual, sin acción */}
+      <div className={`av ${CHANNEL_CLASS[channel] || 'av-mul'}`}
+        style={{ width: 40, height: 40, fontSize: 14 }}>
         {initials}
       </div>
 
@@ -65,7 +60,21 @@ export default function ChatHeader({ onSchedule, onSearch }) {
       </div>
 
       <div className="chat-head-right">
-        {/* Barra de búsqueda de mensajes (#7) */}
+        {/* Ícono persona → editar datos del contacto */}
+        <button
+          className="hbtn"
+          title="Datos del contacto"
+          onClick={() => onEditContact?.({
+            id:      contact?.id,
+            name,
+            email:   contact?.email   || '',
+            address: contact?.location || '',
+          })}
+        >
+          <i className="fa-solid fa-user" />
+        </button>
+
+        {/* Barra de búsqueda de mensajes */}
         {showSearch && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--bg3)', borderRadius: 8, padding: '4px 10px' }}>
             <i className="fa-solid fa-magnifying-glass" style={{ fontSize: 12, color: 'var(--dim)' }} />
@@ -88,14 +97,14 @@ export default function ChatHeader({ onSchedule, onSearch }) {
           </div>
         )}
 
-        {/* Lupa → abre búsqueda de mensajes (#7) */}
+        {/* Lupa */}
         {!showSearch && (
           <button className="hbtn" title="Buscar mensajes" onClick={() => setShowSearch(true)}>
             <i className="fa-solid fa-magnifying-glass" />
           </button>
         )}
 
-        {/* Menú "más" con eliminar chat (#6) */}
+        {/* Menú más → eliminar chat */}
         <div style={{ position: 'relative' }} ref={menuRef}>
           <button className="hbtn" title="Más" onClick={() => setShowMenu(m => !m)}>
             <i className="fa-solid fa-ellipsis-vertical" />

@@ -14,7 +14,7 @@ function formatSince(iso) {
   return new Date(iso).toLocaleDateString('es-AR', { month: 'short', year: 'numeric' });
 }
 
-export default function InfoPanel({ onSchedule }) {
+export default function InfoPanel() {
   const { activeConversation } = useStore();
   const [notes,    setNotes]    = useState([]);
   const [noteText, setNoteText] = useState('');
@@ -49,27 +49,11 @@ export default function InfoPanel({ onSchedule }) {
     <aside className="info-panel">
 
       <div className="ip-section">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <div className="ip-label" style={{ marginBottom: 0 }}>Contacto</div>
-          {/* Botón agendar con datos del contacto (#1) */}
-          <button
-            className="hbtn"
-            title="Agendar turno"
-            style={{ fontSize: 12, padding: '4px 10px', borderRadius: 6, background: 'var(--bg3)', border: '1px solid var(--border2)', color: 'var(--cream-dim)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
-            onClick={() => onSchedule?.({ name, email: contact?.email, address: contact?.location, phone: contact?.phone })}
-          >
-            <i className="fa-solid fa-calendar-plus" />
-            Agendar
-          </button>
-        </div>
+        <div className="ip-label">Contacto</div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-          <div
-            className={`av ${AV_CLASS[channel] || 'av-mul'}`}
-            style={{ width: 42, height: 42, fontSize: 14, cursor: 'pointer' }}
-            title="Agendar turno"
-            onClick={() => onSchedule?.({ name, email: contact?.email, address: contact?.location, phone: contact?.phone })}
-          >
+          <div className={`av ${AV_CLASS[channel] || 'av-mul'}`}
+            style={{ width: 42, height: 42, fontSize: 14 }}>
             {initials}
           </div>
           <div>
