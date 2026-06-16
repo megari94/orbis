@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import useStore from '../../store/useStore';
 
-const AV_CLASS = { WHATSAPP: 'av-wa', INSTAGRAM: 'av-ig', MESSENGER: 'av-fb' };
+const AV_CLASS   = { WHATSAPP: 'av-wa', INSTAGRAM: 'av-ig', MESSENGER: 'av-fb' };
+const AV_ICON    = { WHATSAPP: 'fa-brands fa-whatsapp', INSTAGRAM: 'fa-brands fa-instagram', MESSENGER: 'fa-brands fa-facebook-messenger' };
 
 const CHANNEL_CONFIG = {
   WHATSAPP:  { cls: 'ch-wa', label: 'WA' },
@@ -53,8 +54,8 @@ export default function InfoPanel() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
           <div className={`av ${AV_CLASS[channel] || 'av-mul'}`}
-            style={{ width: 42, height: 42, fontSize: 14 }}>
-            {initials}
+            style={{ width: 42, height: 42, fontSize: 20 }}>
+            <i className={AV_ICON[channel] || 'fa-solid fa-comment'} />
           </div>
           <div>
             <div className="contact-big-name">{name}</div>
@@ -66,23 +67,6 @@ export default function InfoPanel() {
         <div className="contact-row"><i className="fa-solid fa-location-dot" />{location}</div>
       </div>
 
-      <div className="ip-section">
-        <div className="ip-label">Canales vinculados</div>
-        <div className="ch-ids">
-          {channels.length > 0
-            ? channels.map((ch, i) => {
-                const cfg = CHANNEL_CONFIG[ch.channel] || { cls: '', label: ch.channel };
-                return (
-                  <div key={i} className="cid-row">
-                    <span className={`ch-badge ${cfg.cls}`}>{cfg.label}</span>
-                    {ch.externalId}
-                  </div>
-                );
-              })
-            : <div className="cid-row inactive">Sin canales vinculados</div>
-          }
-        </div>
-      </div>
 
       {/* Notas internas: Enter para guardar, X para eliminar (#9) */}
       <div className="ip-section">
