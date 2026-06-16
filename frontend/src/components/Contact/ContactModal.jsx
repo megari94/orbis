@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { updateContact } from '../../services/api';
 
 export default function ContactModal({ contact, onClose, onSaved }) {
-  // Si el nombre guardado es igual al teléfono (nombre por defecto), arrancamos vacío
-  const defaultName = contact?.name === contact?.phone ? '' : (contact?.name || '');
+  // Si el nombre parece un número de teléfono (empieza con + o solo dígitos), arrancamos vacío
+  const looksLikePhone = (s) => s && /^[+\d\s()-]+$/.test(s.trim());
+  const defaultName = looksLikePhone(contact?.name) ? '' : (contact?.name || '');
 
   const [form, setForm] = useState({
     name:    defaultName,
@@ -54,7 +55,7 @@ export default function ContactModal({ contact, onClose, onSaved }) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--cream)', display: 'flex', alignItems: 'center', gap: 10 }}>
             <i className="fa-solid fa-user" style={{ color: 'var(--red)' }} />
-            Datos del contacto
+            Agendar contacto
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--dim)', cursor: 'pointer', fontSize: 16 }}>
             <i className="fa-solid fa-xmark" />
