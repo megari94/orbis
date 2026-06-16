@@ -21,6 +21,9 @@ let ConversationsController = class ConversationsController {
     constructor(svc) {
         this.svc = svc;
     }
+    create(tenantId, contactId, channel) {
+        return this.svc.create(tenantId, contactId, channel);
+    }
     findAll(tenantId, status, channel, assignedTo) {
         return this.svc.findAll(tenantId, { status, channel, assignedTo });
     }
@@ -35,6 +38,15 @@ let ConversationsController = class ConversationsController {
     }
 };
 exports.ConversationsController = ConversationsController;
+__decorate([
+    (0, common_1.Post)(),
+    __param(0, (0, common_1.Headers)('x-tenant-id')),
+    __param(1, (0, common_1.Body)('contactId')),
+    __param(2, (0, common_1.Body)('channel')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", void 0)
+], ConversationsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Headers)('x-tenant-id')),

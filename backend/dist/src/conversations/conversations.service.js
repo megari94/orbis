@@ -16,6 +16,16 @@ let ConversationsService = class ConversationsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
+    async create(tenantId, contactId, channel) {
+        const contact = await this.prisma.contact.findFirst({ where: { id: contactId, tenantId } });
+        if (!contact)
+            throw new common_1.NotFoundException('Contact not found');
+        const conv = await this.prisma.conversation.create({
+            data: { tenantId, contactId, channel: channel.toUpperCase(), status: 'NEW' },
+            include: { contact: { include: { channels: true } } },
+        });
+        return conv;
+    }
     async findAll(tenantId, filters) {
         const where = { tenantId };
         if (filters.status)

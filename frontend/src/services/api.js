@@ -41,6 +41,7 @@ export const getMeApi    = ()     => api.get('/auth/me').then(r => r.data);
 // ── Conversations ─────────────────────────────────────────────────────────────
 export const getConversations    = (params) => api.get('/conversations',           { params }).then(r => r.data);
 export const getConversation     = (id)     => api.get(`/conversations/${id}`).then(r => r.data);
+export const createConversation  = (contactId, channel) => api.post('/conversations', { contactId, channel }).then(r => r.data);
 export const updateConversation  = (id, data) => api.patch(`/conversations/${id}`, data).then(r => r.data);
 export const deleteConversation  = (id)     => api.delete(`/conversations/${id}`).then(r => r.data);
 

@@ -6,6 +6,16 @@ import { UpdateConversationDto } from './dto/update-conversation.dto';
 export class ConversationsService {
   constructor(private prisma: PrismaService) {}
 
+  async create(tenantId: string, contactId: string, channel: string) {
+    const contact = await this.prisma.contact.findFirst({ where: { id: contactId, tenantId } });
+    if (!contact) throw new NotFoundException('Contact not found');
+    const conv = await this.prisma.conversation.create({
+      data: { tenantId, contactId, channel: channel.toUpperCase() as any, status: 'NEW' },
+      include: { contact: { include: { channels: true } } },
+    });
+    return conv;
+  }
+
   async findAll(tenantId: string, filters: any) {
     const where: any = { tenantId };
     if (filters.status)  where.status  = filters.status.toUpperCase();

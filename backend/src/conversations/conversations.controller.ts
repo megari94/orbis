@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Delete, Param, Body, Query, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, Query, Headers } from '@nestjs/common';
 import { ConversationsService } from './conversations.service';
 import { UpdateConversationDto } from './dto/update-conversation.dto';
 import { ApiTags } from '@nestjs/swagger';
@@ -7,6 +7,15 @@ import { ApiTags } from '@nestjs/swagger';
 @Controller('conversations')
 export class ConversationsController {
   constructor(private readonly svc: ConversationsService) {}
+
+  @Post()
+  create(
+    @Headers('x-tenant-id') tenantId: string,
+    @Body('contactId') contactId: string,
+    @Body('channel') channel: string,
+  ) {
+    return this.svc.create(tenantId, contactId, channel);
+  }
 
   @Get()
   findAll(

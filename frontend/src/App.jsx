@@ -14,7 +14,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
 import useStore from './store/useStore';
-import { getConversations as fetchAllConvs } from './services/api';
+import { getConversations as fetchAllConvs, createConversation } from './services/api';
 import './App.css';
 
 function LoadingScreen() {
@@ -36,25 +36,33 @@ function MainApp() {
 
   // Abre el chat de un contacto desde la lista de contactos
   const openChatForContact = async (contact) => {
-    // 1) Buscar en las conversaciones ya cargadas
+    // 1) Buscar en las conversaciones ya cargadas en el store
     let conv = conversations.find(c => c.contact?.id === contact.id);
 
-    // 2) Si no está, buscar en la API (puede haber filtros activos)
+    // 2) Si no está cargada, buscar en la API (puede haber filtros activos)
     if (!conv) {
       try {
         const all = await fetchAllConvs({});
         const match = all.find(c => c.contact?.id === contact.id);
         if (match) {
-          // Refrescar el store para incluirla y luego seleccionarla
           await fetchConversations();
           conv = useStore.getState().conversations.find(c => c.contact?.id === contact.id);
         }
-      } catch { /* sin conversación */ }
+      } catch { /* ignorar */ }
+    }
+
+    // 3) Si no existe ninguna conversación (fue eliminada o nunca hubo), crear una nueva
+    if (!conv) {
+      try {
+        const channel = contact.channels?.[0]?.channel || 'WHATSAPP';
+        const newConv = await createConversation(contact.id, channel);
+        await fetchConversations();
+        conv = useStore.getState().conversations.find(c => c.id === newConv.id);
+      } catch { /* no se pudo crear */ }
     }
 
     setActiveTab('Bandeja');
     if (conv) {
-      // pequeño delay para que React renderice el tab antes de seleccionar
       setTimeout(() => selectConversation(conv), 50);
     }
   };

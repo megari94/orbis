@@ -74,7 +74,12 @@ export default function ContactsList({ onOpenChat }) {
     }
   };
 
-  const filtered = contacts.filter(c =>
+  // "Agendado" = tiene nombre real (no vacío y no es solo un número de teléfono)
+  const looksLikePhone = (s) => !s || /^[+\d\s()\-]+$/.test(s.trim());
+
+  const agendados = contacts.filter(c => !looksLikePhone(c.name));
+
+  const filtered = agendados.filter(c =>
     c.name?.toLowerCase().includes(search.toLowerCase()) ||
     c.phone?.includes(search) ||
     c.email?.toLowerCase().includes(search.toLowerCase())
@@ -105,7 +110,7 @@ export default function ContactsList({ onOpenChat }) {
         )}
         {!loading && filtered.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px 16px', color: 'var(--dim)', fontSize: 13 }}>
-            {search ? 'Sin resultados' : 'Sin contactos'}
+            {search ? 'Sin resultados' : 'No hay contactos agendados'}
           </div>
         )}
         {!loading && filtered.map(c => (
