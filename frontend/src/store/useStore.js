@@ -62,6 +62,7 @@ const useStore = create((set, get) => ({
   activeConversation: null,
   messages:           [],
   filter:             { status: null, channel: null },
+  convTags:           {}, // { [convId]: string | null }
   loading:            false,
   loadingMessages:    false,
 
@@ -198,6 +199,11 @@ const useStore = create((set, get) => ({
     try {
       await updateConversation(conv.id, { status: STATUS_TO_API[status] ?? status });
     } catch { /* sin backend — ok */ }
+  },
+
+  setConvTag: (convId, label) => {
+    set(s => ({ convTags: { ...s.convTags, [convId]: label } }));
+    // TODO: persistir en API cuando haya endpoint de tags
   },
 
   setFilter: (filter) => {

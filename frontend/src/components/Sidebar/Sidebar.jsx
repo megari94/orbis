@@ -146,23 +146,16 @@ function LabelMenu({ conv, onClose, onSetLabel }) {
 }
 
 export default function Sidebar() {
-  const { conversations, activeConversation, selectConversation, loading } = useStore();
+  const { conversations, activeConversation, selectConversation, loading, convTags, setConvTag } = useStore();
   const [search,        setSearch]        = useState('');
   const [statusFilter,  setStatusFilter]  = useState(null);
   const [channelFilter, setChannelFilter] = useState('all');
   const [labelMenuId,   setLabelMenuId]   = useState(null);
-  // tags locales por conversación (pendiente → etiqueta)
-  const [localTags,     setLocalTags]     = useState({});
   const { width, onMouseDown } = useSidebarResize();
 
   const toggleStatus = (key) => setStatusFilter(s => s === key ? null : key);
 
-  const setLabel = (convId, label) => {
-    setLocalTags(t => ({ ...t, [convId]: label }));
-    // TODO: persistir en API
-  };
-
-  const getTag = (conv) => localTags[conv.id] ?? conv.tag ?? null;
+  const getTag = (conv) => convTags[conv.id] ?? conv.tag ?? null;
 
   const filtered = conversations.filter(c => {
     const matchSearch  = c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -261,9 +254,6 @@ export default function Sidebar() {
               onClick={() => selectConversation(conv)}
               style={{ position: 'relative' }}
             >
-              <div className={`av ${CHANNEL_CLASS[conv.channel] || 'av-mul'}`}>
-                {conv.initials}
-              </div>
               <div className="conv-body">
                 <div className="conv-row1">
                   <span className="conv-name">{conv.name}</span>
@@ -306,7 +296,7 @@ export default function Sidebar() {
                     <LabelMenu
                       conv={{ ...conv, tag }}
                       onClose={() => setLabelMenuId(null)}
-                      onSetLabel={setLabel}
+                      onSetLabel={setConvTag}
                     />
                   )}
                 </div>
