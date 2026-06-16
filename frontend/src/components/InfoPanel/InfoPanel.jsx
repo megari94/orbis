@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import useStore from '../../store/useStore';
+import ContactModal from '../Contact/ContactModal';
 
 const AV_CLASS   = { WHATSAPP: 'av-wa', INSTAGRAM: 'av-ig', MESSENGER: 'av-fb' };
 const AV_ICON    = { WHATSAPP: 'fa-brands fa-whatsapp', INSTAGRAM: 'fa-brands fa-instagram', MESSENGER: 'fa-brands fa-facebook-messenger' };
@@ -15,10 +16,44 @@ function formatSince(iso) {
   return new Date(iso).toLocaleDateString('es-AR', { month: 'short', year: 'numeric' });
 }
 
+function ContactMenu({ contact, onEdit, onClose }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [onClose]);
+
+  return (
+    <div ref={ref} style={{
+      position: 'absolute', top: 28, right: 0, zIndex: 300,
+      background: 'var(--bg2)', border: '1px solid var(--border2)',
+      borderRadius: 10, minWidth: 160, padding: '4px 0',
+      boxShadow: '0 8px 24px rgba(0,0,0,.5)',
+    }}>
+      <button
+        onClick={() => { onEdit(contact); onClose(); }}
+        style={{
+          width: '100%', padding: '10px 14px', background: 'none', border: 'none',
+          color: 'var(--cream-dim)', fontSize: 13, cursor: 'pointer', textAlign: 'left',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'none'}
+      >
+        <i className="fa-solid fa-pen" style={{ width: 14, textAlign: 'center' }} />
+        Editar contacto
+      </button>
+    </div>
+  );
+}
+
 export default function InfoPanel() {
   const { activeConversation } = useStore();
-  const [notes,    setNotes]    = useState([]);
-  const [noteText, setNoteText] = useState('');
+  const [notes,      setNotes]      = useState([]);
+  const [noteText,   setNoteText]   = useState('');
+  const [showMenu,   setShowMenu]   = useState(false);
+  const [editingContact, setEditingContact] = useState(null);
 
   if (!activeConversation) return null;
 
@@ -47,10 +82,30 @@ export default function InfoPanel() {
   const removeNote = (id) => setNotes(n => n.filter(x => x.id !== id));
 
   return (
+    <>
     <aside className="info-panel">
 
       <div className="ip-section">
-        <div className="ip-label">Contacto</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div className="ip-label" style={{ marginBottom: 0 }}>Contacto</div>
+          <div style={{ position: 'relative' }}>
+            <button
+              className="hbtn"
+              style={{ fontSize: 13 }}
+              title="Más opciones"
+              onClick={() => setShowMenu(m => !m)}
+            >
+              <i className="fa-solid fa-ellipsis-vertical" />
+            </button>
+            {showMenu && (
+              <ContactMenu
+                contact={{ id: contact?.id, name, email: contact?.email, address: contact?.location }}
+                onEdit={setEditingContact}
+                onClose={() => setShowMenu(false)}
+              />
+            )}
+          </div>
+        </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
           <div className={`av ${AV_CLASS[channel] || 'av-mul'}`}
@@ -104,5 +159,14 @@ export default function InfoPanel() {
       </div>
 
     </aside>
+
+    {editingContact && (
+      <ContactModal
+        contact={editingContact}
+        onClose={() => setEditingContact(null)}
+        onSaved={() => setEditingContact(null)}
+      />
+    )}
+    </>
   );
 }

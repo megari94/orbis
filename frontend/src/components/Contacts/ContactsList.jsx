@@ -1,30 +1,71 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getContacts } from '../../services/api';
+import ContactModal from '../Contact/ContactModal';
 
-const AV_CLASS = { WHATSAPP: 'av-wa', INSTAGRAM: 'av-ig', MESSENGER: 'av-fb' };
+const AV_CLASS  = { WHATSAPP: 'av-wa', INSTAGRAM: 'av-ig', MESSENGER: 'av-fb' };
+const AV_ICON   = { WHATSAPP: 'fa-brands fa-whatsapp', INSTAGRAM: 'fa-brands fa-instagram', MESSENGER: 'fa-brands fa-facebook-messenger' };
 
-function initials(name) {
-  if (!name) return '?';
-  return name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+function ContactMenu({ contact, onEdit, onClose }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [onClose]);
+
+  return (
+    <div ref={ref} style={{
+      position: 'absolute', top: 32, right: 0, zIndex: 300,
+      background: 'var(--bg2)', border: '1px solid var(--border2)',
+      borderRadius: 10, minWidth: 160, padding: '4px 0',
+      boxShadow: '0 8px 24px rgba(0,0,0,.5)',
+    }}>
+      <button
+        onClick={() => { onEdit(contact); onClose(); }}
+        style={{
+          width: '100%', padding: '10px 14px', background: 'none', border: 'none',
+          color: 'var(--cream-dim)', fontSize: 13, cursor: 'pointer', textAlign: 'left',
+          display: 'flex', alignItems: 'center', gap: 10,
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'none'}
+      >
+        <i className="fa-solid fa-pen" style={{ width: 14, textAlign: 'center' }} />
+        Editar contacto
+      </button>
+    </div>
+  );
 }
 
 export default function ContactsList() {
-  const [contacts, setContacts] = useState([]);
-  const [search,   setSearch]   = useState('');
-  const [loading,  setLoading]  = useState(true);
+  const [contacts,   setContacts]   = useState([]);
+  const [search,     setSearch]     = useState('');
+  const [loading,    setLoading]    = useState(true);
+  const [menuId,     setMenuId]     = useState(null);
+  const [editing,    setEditing]    = useState(null); // contacto a editar
 
-  useEffect(() => {
+  const load = () => {
+    setLoading(true);
     getContacts()
       .then(data => setContacts(data ?? []))
       .catch(() => setContacts([]))
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const onSaved = (updated) => {
+    setContacts(cs => cs.map(c => c.id === updated.id ? { ...c, ...updated } : c));
+    setEditing(null);
+  };
 
   const filtered = contacts.filter(c =>
     c.name?.toLowerCase().includes(search.toLowerCase()) ||
     c.phone?.includes(search) ||
     c.email?.toLowerCase().includes(search.toLowerCase())
   );
+
+  const channel0 = (c) => c.channels?.[0]?.channel;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
@@ -58,15 +99,20 @@ export default function ContactsList() {
             style={{
               display: 'flex', alignItems: 'center', gap: 12,
               padding: '12px 16px', borderBottom: '1px solid var(--border)',
-              cursor: 'default',
-              transition: 'background .15s',
+              position: 'relative', transition: 'background .15s',
             }}
             onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
             onMouseLeave={e => e.currentTarget.style.background = 'none'}
           >
-            <div className={`av ${AV_CLASS[c.channels?.[0]?.channel] || 'av-mul'}`} style={{ width: 38, height: 38, fontSize: 13, flexShrink: 0 }}>
-              {initials(c.name)}
+            {/* Avatar con logo de red social */}
+            <div className={`av ${AV_CLASS[channel0(c)] || 'av-mul'}`}
+              style={{ width: 38, height: 38, fontSize: 16, flexShrink: 0 }}>
+              {channel0(c)
+                ? <i className={AV_ICON[channel0(c)]} />
+                : <i className="fa-solid fa-user" style={{ fontSize: 14 }} />
+              }
             </div>
+
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--cream)', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {c.name || '(sin nombre)'}
@@ -81,9 +127,37 @@ export default function ContactsList() {
                 </div>
               )}
             </div>
+
+            {/* 3 puntos */}
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <button
+                className="hbtn"
+                style={{ fontSize: 13 }}
+                onClick={e => { e.stopPropagation(); setMenuId(id => id === c.id ? null : c.id); }}
+                title="Más opciones"
+              >
+                <i className="fa-solid fa-ellipsis-vertical" />
+              </button>
+              {menuId === c.id && (
+                <ContactMenu
+                  contact={c}
+                  onEdit={setEditing}
+                  onClose={() => setMenuId(null)}
+                />
+              )}
+            </div>
           </div>
         ))}
       </div>
+
+      {/* Modal edición */}
+      {editing && (
+        <ContactModal
+          contact={{ id: editing.id, name: editing.name, email: editing.email, address: editing.location }}
+          onClose={() => setEditing(null)}
+          onSaved={onSaved}
+        />
+      )}
     </div>
   );
 }
