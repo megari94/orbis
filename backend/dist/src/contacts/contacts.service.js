@@ -16,6 +16,13 @@ let ContactsService = class ContactsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
+    async findAll(tenantId) {
+        return this.prisma.contact.findMany({
+            where: { tenantId },
+            include: { channels: true },
+            orderBy: { name: 'asc' },
+        });
+    }
     async findOne(tenantId, id) {
         const contact = await this.prisma.contact.findFirst({
             where: { id, tenantId },
@@ -24,6 +31,19 @@ let ContactsService = class ContactsService {
         if (!contact)
             throw new common_1.NotFoundException('Contact not found');
         return contact;
+    }
+    async update(tenantId, id, data) {
+        const contact = await this.prisma.contact.findFirst({ where: { id, tenantId } });
+        if (!contact)
+            throw new common_1.NotFoundException('Contact not found');
+        return this.prisma.contact.update({
+            where: { id },
+            data: {
+                ...(data.name !== undefined ? { name: data.name } : {}),
+                ...(data.email !== undefined ? { email: data.email } : {}),
+                ...(data.location !== undefined ? { location: data.location } : {}),
+            },
+        });
     }
 };
 exports.ContactsService = ContactsService;

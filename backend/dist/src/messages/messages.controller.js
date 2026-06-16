@@ -14,6 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MessagesController = void 0;
 const common_1 = require("@nestjs/common");
+const platform_express_1 = require("@nestjs/platform-express");
 const messages_service_1 = require("./messages.service");
 const create_message_dto_1 = require("./dto/create-message.dto");
 const swagger_1 = require("@nestjs/swagger");
@@ -26,6 +27,9 @@ let MessagesController = class MessagesController {
     }
     create(tenantId, conversationId, dto) {
         return this.svc.create(tenantId, conversationId, dto);
+    }
+    sendMedia(tenantId, conversationId, file) {
+        return this.svc.sendMedia(tenantId, conversationId, file);
     }
 };
 exports.MessagesController = MessagesController;
@@ -46,6 +50,16 @@ __decorate([
     __metadata("design:paramtypes", [String, String, create_message_dto_1.CreateMessageDto]),
     __metadata("design:returntype", void 0)
 ], MessagesController.prototype, "create", null);
+__decorate([
+    (0, common_1.Post)('media'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file')),
+    __param(0, (0, common_1.Headers)('x-tenant-id')),
+    __param(1, (0, common_1.Param)('conversationId')),
+    __param(2, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", void 0)
+], MessagesController.prototype, "sendMedia", null);
 exports.MessagesController = MessagesController = __decorate([
     (0, swagger_1.ApiTags)('messages'),
     (0, common_1.Controller)('conversations/:conversationId/messages'),

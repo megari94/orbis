@@ -228,7 +228,7 @@ export class MessagesService {
     const uploadUrl = `https://graph.facebook.com/v20.0/${phoneNumberId}/media`;
     const form = new (globalThis as any).FormData();
     form.append('messaging_product', 'whatsapp');
-    form.append('file', new Blob([file.buffer], { type: file.mimetype }), file.originalname);
+    form.append('file', new Blob([file.buffer as unknown as ArrayBuffer], { type: file.mimetype }), file.originalname);
     form.append('type', file.mimetype);
 
     const uploadRes = await fetch(uploadUrl, {

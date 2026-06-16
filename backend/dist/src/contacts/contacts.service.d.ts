@@ -2,6 +2,23 @@ import { PrismaService } from '../prisma/prisma.service';
 export declare class ContactsService {
     private prisma;
     constructor(prisma: PrismaService);
+    findAll(tenantId: string): Promise<({
+        channels: {
+            id: string;
+            contactId: string;
+            channel: import(".prisma/client").$Enums.Channel;
+            externalId: string;
+            linked: boolean;
+        }[];
+    } & {
+        id: string;
+        name: string;
+        createdAt: Date;
+        tenantId: string;
+        email: string | null;
+        phone: string | null;
+        location: string | null;
+    })[]>;
     findOne(tenantId: string, id: string): Promise<{
         conversations: {
             id: string;
@@ -26,6 +43,19 @@ export declare class ContactsService {
             linked: boolean;
         }[];
     } & {
+        id: string;
+        name: string;
+        createdAt: Date;
+        tenantId: string;
+        email: string | null;
+        phone: string | null;
+        location: string | null;
+    }>;
+    update(tenantId: string, id: string, data: {
+        name?: string;
+        email?: string;
+        location?: string;
+    }): Promise<{
         id: string;
         name: string;
         createdAt: Date;

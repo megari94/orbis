@@ -149,6 +149,79 @@ let MessagesService = MessagesService_1 = class MessagesService {
         }
         this.logger.log(`Facebook message enviado a ${recipientId}: ${res.status}`);
     }
+    async sendMedia(tenantId, conversationId, file) {
+        const conv = await this.prisma.conversation.findFirst({
+            where: { id: conversationId, tenantId },
+            include: { contact: true },
+        });
+        if (!conv)
+            throw new common_1.NotFoundException('Conversation not found');
+        const message = await this.prisma.message.create({
+            data: {
+                conversationId,
+                content: `📎 ${file.originalname}`,
+                sender: client_1.SenderType.AGENT,
+                channel: conv.channel,
+                isInternal: false,
+            },
+        });
+        await this.prisma.conversation.update({
+            where: { id: conversationId },
+            data: { lastMessage: `📎 ${file.originalname}`, lastMsgAt: new Date(), unreadCount: 0 },
+        });
+        if (conv.channel === 'WHATSAPP') {
+            const config = await this.prisma.channelConfig.findFirst({
+                where: { tenantId, channel: 'WHATSAPP', isActive: true },
+            });
+            if (config?.accessToken && config?.phoneNumberId && conv.contact?.phone) {
+                this.uploadAndSendWhatsAppMedia(config.accessToken, config.phoneNumberId, this.normalizeArgentineNumber(conv.contact.phone), file).catch(err => this.logger.warn(`Media WA error: ${err.message}`));
+            }
+        }
+        return message;
+    }
+    async uploadAndSendWhatsAppMedia(accessToken, phoneNumberId, to, file) {
+        const uploadUrl = `https://graph.facebook.com/v20.0/${phoneNumberId}/media`;
+        const form = new globalThis.FormData();
+        form.append('messaging_product', 'whatsapp');
+        form.append('file', new Blob([file.buffer], { type: file.mimetype }), file.originalname);
+        form.append('type', file.mimetype);
+        const uploadRes = await fetch(uploadUrl, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${accessToken}` },
+            body: form,
+            signal: AbortSignal.timeout(30000),
+        });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok)
+            throw new Error(`Media upload ${uploadRes.status}: ${uploadData?.error?.message}`);
+        const mediaId = uploadData.id;
+        let msgType = 'document';
+        if (file.mimetype.startsWith('image/'))
+            msgType = 'image';
+        else if (file.mimetype.startsWith('video/'))
+            msgType = 'video';
+        else if (file.mimetype.startsWith('audio/'))
+            msgType = 'audio';
+        const sendUrl = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
+        const body = {
+            messaging_product: 'whatsapp',
+            to,
+            type: msgType,
+            [msgType]: { id: mediaId },
+        };
+        if (msgType === 'document')
+            body.document.filename = file.originalname;
+        const sendRes = await fetch(sendUrl, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+            signal: AbortSignal.timeout(15000),
+        });
+        const sendData = await sendRes.json();
+        if (!sendRes.ok)
+            throw new Error(`Media send ${sendRes.status}: ${sendData?.error?.message}`);
+        this.logger.log(`WhatsApp media enviado a ${to}: ${msgType} ${mediaId}`);
+    }
 };
 exports.MessagesService = MessagesService;
 exports.MessagesService = MessagesService = MessagesService_1 = __decorate([

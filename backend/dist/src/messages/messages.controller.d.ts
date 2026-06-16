@@ -23,4 +23,14 @@ export declare class MessagesController {
         conversationId: string;
         isBot: boolean;
     }>;
+    sendMedia(tenantId: string, conversationId: string, file: Express.Multer.File): Promise<{
+        id: string;
+        createdAt: Date;
+        channel: import(".prisma/client").$Enums.Channel;
+        isInternal: boolean;
+        sender: import(".prisma/client").$Enums.SenderType;
+        content: string;
+        conversationId: string;
+        isBot: boolean;
+    }>;
 }

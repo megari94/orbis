@@ -20,11 +20,24 @@ let ContactsController = class ContactsController {
     constructor(svc) {
         this.svc = svc;
     }
+    findAll(tenantId) {
+        return this.svc.findAll(tenantId);
+    }
     findOne(tenantId, id) {
         return this.svc.findOne(tenantId, id);
     }
+    update(tenantId, id, body) {
+        return this.svc.update(tenantId, id, body);
+    }
 };
 exports.ContactsController = ContactsController;
+__decorate([
+    (0, common_1.Get)(),
+    __param(0, (0, common_1.Headers)('x-tenant-id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ContactsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Headers)('x-tenant-id')),
@@ -33,6 +46,15 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", void 0)
 ], ContactsController.prototype, "findOne", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    __param(0, (0, common_1.Headers)('x-tenant-id')),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", void 0)
+], ContactsController.prototype, "update", null);
 exports.ContactsController = ContactsController = __decorate([
     (0, swagger_1.ApiTags)('contacts'),
     (0, common_1.Controller)('contacts'),
