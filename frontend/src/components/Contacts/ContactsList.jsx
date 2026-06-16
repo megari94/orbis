@@ -42,7 +42,7 @@ function ContactMenu({ contact, onEdit, onDelete, onClose }) {
   );
 }
 
-export default function ContactsList() {
+export default function ContactsList({ onOpenChat }) {
   const [contacts,   setContacts]   = useState([]);
   const [search,     setSearch]     = useState('');
   const [loading,    setLoading]    = useState(true);
@@ -115,7 +115,9 @@ export default function ContactsList() {
               display: 'flex', alignItems: 'center', gap: 12,
               padding: '12px 16px', borderBottom: '1px solid var(--border)',
               position: 'relative', transition: 'background .15s',
+              cursor: 'pointer',
             }}
+            onClick={() => onOpenChat?.(c)}
             onMouseEnter={e => e.currentTarget.style.background = 'var(--bg2)'}
             onMouseLeave={e => e.currentTarget.style.background = 'none'}
           >

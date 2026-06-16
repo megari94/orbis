@@ -14,6 +14,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ResetPassword from './pages/ResetPassword';
 import useStore from './store/useStore';
+import { getConversations as fetchAllConvs } from './services/api';
 import './App.css';
 
 function LoadingScreen() {
@@ -32,6 +33,31 @@ function MainApp() {
   const [activeTab,      setActiveTab]      = useState('Bandeja');
   const [contactData,    setContactData]    = useState(null); // null = cerrado
   const [msgSearch,      setMsgSearch]      = useState('');
+
+  // Abre el chat de un contacto desde la lista de contactos
+  const openChatForContact = async (contact) => {
+    // 1) Buscar en las conversaciones ya cargadas
+    let conv = conversations.find(c => c.contact?.id === contact.id);
+
+    // 2) Si no está, buscar en la API (puede haber filtros activos)
+    if (!conv) {
+      try {
+        const all = await fetchAllConvs({});
+        const match = all.find(c => c.contact?.id === contact.id);
+        if (match) {
+          // Refrescar el store para incluirla y luego seleccionarla
+          await fetchConversations();
+          conv = useStore.getState().conversations.find(c => c.contact?.id === contact.id);
+        }
+      } catch { /* sin conversación */ }
+    }
+
+    setActiveTab('Bandeja');
+    if (conv) {
+      // pequeño delay para que React renderice el tab antes de seleccionar
+      setTimeout(() => selectConversation(conv), 50);
+    }
+  };
 
   useEffect(() => { fetchConversations(); }, []);
 
@@ -77,7 +103,7 @@ function MainApp() {
         ) : (
           /* Vista Contactos (#10) */
           <section style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <ContactsList />
+            <ContactsList onOpenChat={openChatForContact} />
           </section>
         )}
       </div>
