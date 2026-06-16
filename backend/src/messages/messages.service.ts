@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { SenderType } from '@prisma/client';
+// node-fetch / FormData nativos en Node 18+
 
 @Injectable()
 export class MessagesService {
@@ -172,5 +173,100 @@ export class MessagesService {
     }
 
     this.logger.log(`Facebook message enviado a ${recipientId}: ${res.status}`);
+  }
+
+  // ── Enviar archivo adjunto (imagen/documento/video) ───────────────────────
+  async sendMedia(tenantId: string, conversationId: string, file: Express.Multer.File) {
+    const conv = await this.prisma.conversation.findFirst({
+      where: { id: conversationId, tenantId },
+      include: { contact: true },
+    });
+    if (!conv) throw new NotFoundException('Conversation not found');
+
+    // Guardar mensaje en BD con el nombre del archivo como contenido
+    const message = await this.prisma.message.create({
+      data: {
+        conversationId,
+        content:    `📎 ${file.originalname}`,
+        sender:     SenderType.AGENT,
+        channel:    conv.channel,
+        isInternal: false,
+      },
+    });
+
+    await this.prisma.conversation.update({
+      where: { id: conversationId },
+      data:  { lastMessage: `📎 ${file.originalname}`, lastMsgAt: new Date(), unreadCount: 0 },
+    });
+
+    // Enviar por WhatsApp si es ese canal
+    if (conv.channel === 'WHATSAPP') {
+      const config = await this.prisma.channelConfig.findFirst({
+        where: { tenantId, channel: 'WHATSAPP', isActive: true },
+      });
+      if (config?.accessToken && config?.phoneNumberId && conv.contact?.phone) {
+        this.uploadAndSendWhatsAppMedia(
+          config.accessToken,
+          config.phoneNumberId,
+          this.normalizeArgentineNumber(conv.contact.phone),
+          file,
+        ).catch(err => this.logger.warn(`Media WA error: ${err.message}`));
+      }
+    }
+
+    return message;
+  }
+
+  // Sube el archivo a la Media API de WhatsApp y lo envía
+  private async uploadAndSendWhatsAppMedia(
+    accessToken: string,
+    phoneNumberId: string,
+    to: string,
+    file: Express.Multer.File,
+  ) {
+    // 1. Subir el archivo a la Media API
+    const uploadUrl = `https://graph.facebook.com/v20.0/${phoneNumberId}/media`;
+    const form = new (globalThis as any).FormData();
+    form.append('messaging_product', 'whatsapp');
+    form.append('file', new Blob([file.buffer], { type: file.mimetype }), file.originalname);
+    form.append('type', file.mimetype);
+
+    const uploadRes = await fetch(uploadUrl, {
+      method:  'POST',
+      headers: { 'Authorization': `Bearer ${accessToken}` },
+      body:    form,
+      signal:  AbortSignal.timeout(30000),
+    });
+    const uploadData = await uploadRes.json() as any;
+    if (!uploadRes.ok) throw new Error(`Media upload ${uploadRes.status}: ${uploadData?.error?.message}`);
+
+    const mediaId = uploadData.id as string;
+
+    // 2. Determinar tipo de mensaje según mimetype
+    let msgType = 'document';
+    if (file.mimetype.startsWith('image/')) msgType = 'image';
+    else if (file.mimetype.startsWith('video/')) msgType = 'video';
+    else if (file.mimetype.startsWith('audio/')) msgType = 'audio';
+
+    // 3. Enviar el mensaje con el media_id
+    const sendUrl = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`;
+    const body: any = {
+      messaging_product: 'whatsapp',
+      to,
+      type: msgType,
+      [msgType]: { id: mediaId },
+    };
+    if (msgType === 'document') body.document.filename = file.originalname;
+
+    const sendRes = await fetch(sendUrl, {
+      method:  'POST',
+      headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body),
+      signal:  AbortSignal.timeout(15000),
+    });
+    const sendData = await sendRes.json();
+    if (!sendRes.ok) throw new Error(`Media send ${sendRes.status}: ${(sendData as any)?.error?.message}`);
+
+    this.logger.log(`WhatsApp media enviado a ${to}: ${msgType} ${mediaId}`);
   }
 }

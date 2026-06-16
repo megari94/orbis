@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Param, Body, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Headers, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { MessagesService } from './messages.service';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { ApiTags } from '@nestjs/swagger';
@@ -23,5 +24,15 @@ export class MessagesController {
     @Body() dto: CreateMessageDto,
   ) {
     return this.svc.create(tenantId, conversationId, dto);
+  }
+
+  @Post('media')
+  @UseInterceptors(FileInterceptor('file'))
+  sendMedia(
+    @Headers('x-tenant-id') tenantId: string,
+    @Param('conversationId') conversationId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.svc.sendMedia(tenantId, conversationId, file);
   }
 }
