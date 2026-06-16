@@ -59,10 +59,12 @@ export default function InfoPanel() {
 
   const { name, initials, channel, contact } = activeConversation;
 
-  const phone    = contact?.phone    || '—';
-  const email    = contact?.email    || '—';
-  const location = contact?.location || '—';
-  const since    = formatSince(contact?.createdAt);
+  const phone      = contact?.phone    || '—';
+  const email      = contact?.email    || '—';
+  const location   = contact?.location || '—';
+  const since      = formatSince(contact?.createdAt);
+  // Si el nombre guardado es igual al teléfono, significa que no tiene nombre real aún
+  const hasRealName = name && name !== phone && name !== contact?.phone;
   const channels = contact?.channels ?? [];
 
   const addNote = () => {
@@ -99,7 +101,7 @@ export default function InfoPanel() {
             </button>
             {showMenu && (
               <ContactMenu
-                contact={{ id: contact?.id, name, email: contact?.email, address: contact?.location }}
+                contact={{ id: contact?.id, name, phone: contact?.phone, email: contact?.email, address: contact?.location }}
                 onEdit={setEditingContact}
                 onClose={() => setShowMenu(false)}
               />
@@ -113,7 +115,10 @@ export default function InfoPanel() {
             <i className={AV_ICON[channel] || 'fa-solid fa-comment'} />
           </div>
           <div>
-            <div className="contact-big-name">{name}</div>
+            {hasRealName
+              ? <div className="contact-big-name">{name}</div>
+              : <div className="contact-big-name" style={{ color: 'var(--dim)', fontStyle: 'italic', fontSize: 13 }}>Sin nombre</div>
+            }
             <div className="since">cliente desde {since}</div>
           </div>
         </div>

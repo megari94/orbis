@@ -68,7 +68,8 @@ export default function ChatHeader({ onEditContact, onSearch }) {
           onClick={() => onEditContact?.({
             id:      contact?.id,
             name,
-            email:   contact?.email   || '',
+            phone:   contact?.phone    || phone,
+            email:   contact?.email    || '',
             address: contact?.location || '',
           })}
         >

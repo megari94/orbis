@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { updateContact } from '../../services/api';
 
 export default function ContactModal({ contact, onClose, onSaved }) {
+  // Si el nombre guardado es igual al teléfono (nombre por defecto), arrancamos vacío
+  const defaultName = contact?.name === contact?.phone ? '' : (contact?.name || '');
+
   const [form, setForm] = useState({
-    name:     contact?.name    || '',
-    email:    contact?.email   || '',
-    address:  contact?.address || '',
+    name:    defaultName,
+    email:   contact?.email   || '',
+    address: contact?.address || '',
   });
   const [saving, setSaving] = useState(false);
   const [error,  setError]  = useState('');
@@ -18,12 +21,16 @@ export default function ContactModal({ contact, onClose, onSaved }) {
     setError('');
     try {
       if (contact?.id) {
-        await updateContact(contact.id, { name: form.name, email: form.email, location: form.address });
+        await updateContact(contact.id, {
+          name:     form.name,
+          email:    form.email,
+          location: form.address,
+        });
       }
-      onSaved?.({ ...contact, ...form });
+      onSaved?.({ ...contact, name: form.name, email: form.email, address: form.address });
       onClose();
     } catch (e) {
-      setError('No se pudo guardar. Intentá de nuevo.');
+      setError(`No se pudo guardar: ${e?.response?.data?.message || e?.message || 'error desconocido'}`);
     } finally {
       setSaving(false);
     }
@@ -40,7 +47,7 @@ export default function ContactModal({ contact, onClose, onSaved }) {
     >
       <div style={{
         background: 'var(--bg1)', border: '1px solid var(--border2)',
-        borderRadius: 14, padding: 28, width: 400, maxWidth: '95vw',
+        borderRadius: 14, padding: 28, width: 420, maxWidth: '95vw',
         boxShadow: '0 16px 48px rgba(0,0,0,.6)',
       }}>
         {/* Header */}
@@ -54,11 +61,30 @@ export default function ContactModal({ contact, onClose, onSaved }) {
           </button>
         </div>
 
-        {/* Campos */}
+        {/* Teléfono — solo lectura */}
+        {contact?.phone && (
+          <div style={{ marginBottom: 18 }}>
+            <label style={{ display: 'block', fontSize: 11, color: 'var(--dim)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: .6 }}>
+              Teléfono
+            </label>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              background: 'var(--bg2)', border: '1px solid var(--border)',
+              borderRadius: 8, padding: '9px 12px',
+              color: 'var(--dim)', fontSize: 14,
+            }}>
+              <i className="fa-solid fa-phone" style={{ fontSize: 13, color: 'var(--dim)' }} />
+              {contact.phone}
+              <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--dim)', opacity: .6 }}>solo lectura</span>
+            </div>
+          </div>
+        )}
+
+        {/* Campos editables */}
         {[
-          { label: 'Nombre',            key: 'name',    type: 'text',  placeholder: 'Nombre completo',      icon: 'fa-user'         },
-          { label: 'Correo electrónico', key: 'email',   type: 'email', placeholder: 'correo@ejemplo.com',   icon: 'fa-envelope'     },
-          { label: 'Dirección',         key: 'address', type: 'text',  placeholder: 'Calle, número, ciudad', icon: 'fa-location-dot' },
+          { label: 'Nombre',             key: 'name',    type: 'text',  placeholder: 'Nombre completo del contacto', icon: 'fa-user'         },
+          { label: 'Correo electrónico', key: 'email',   type: 'email', placeholder: 'correo@ejemplo.com',           icon: 'fa-envelope'     },
+          { label: 'Dirección',          key: 'address', type: 'text',  placeholder: 'Calle, número, ciudad',        icon: 'fa-location-dot' },
         ].map(({ label, key, type, placeholder, icon }) => (
           <div key={key} style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', fontSize: 11, color: 'var(--dim)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: .6 }}>
