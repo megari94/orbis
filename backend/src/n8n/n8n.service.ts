@@ -186,9 +186,10 @@ export class N8nService {
       });
     }
 
-    // 2. Encontrar o crear conversación abierta (cualquiera que no esté resuelta)
+    // 2. Siempre reusar la conversación más reciente del mismo número+canal
+    // (sin importar el estado — una sola conversación por número)
     let conversation = await this.prisma.conversation.findFirst({
-      where: { tenantId, contactId: contact.id, channel: channel as any, status: { not: 'RESOLVED' } },
+      where: { tenantId, contactId: contact.id, channel: channel as any },
       orderBy: { lastMsgAt: 'desc' },
     });
     if (!conversation) {

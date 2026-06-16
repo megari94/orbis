@@ -21,6 +21,19 @@ function formatTime(iso) {
   return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' });
 }
 
+// Deduplica conversaciones: por cada contacto+canal, queda solo la más reciente
+function dedup(list) {
+  const seen = new Map();
+  for (const c of list) {
+    const key = `${c.contact?.id ?? c.id}_${c.channel}`;
+    const existing = seen.get(key);
+    if (!existing || new Date(c.lastMsgAt) > new Date(existing.lastMsgAt)) {
+      seen.set(key, c);
+    }
+  }
+  return [...seen.values()];
+}
+
 // Convierte un objeto Conversation de la API al formato del componente
 function mapConversation(c) {
   return {
@@ -74,7 +87,7 @@ const useStore = create((set, get) => ({
       if (f.status)  params.status  = STATUS_TO_API[f.status] ?? f.status;
       if (f.channel) params.channel = f.channel;
       const data = await getConversations(params);
-      set({ conversations: data.map(mapConversation) });
+      set({ conversations: dedup(data).map(mapConversation) });
     } catch {
       set({ conversations: [] });
     } finally {
@@ -159,7 +172,7 @@ const useStore = create((set, get) => ({
       if (f.status)  params.status  = STATUS_TO_API[f.status] ?? f.status;
       if (f.channel) params.channel = f.channel;
       const data = await getConversations(params);
-      const mapped = data.map(mapConversation);
+      const mapped = dedup(data).map(mapConversation);
 
       // Actualizar sin perder la conversación activa seleccionada
       const active = get().activeConversation;
