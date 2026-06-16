@@ -7,7 +7,7 @@ const BADGE_CLASS   = { WHATSAPP: 'ch-wa', INSTAGRAM: 'ch-ig', MESSENGER: 'ch-fb
 const BADGE_LABEL   = { WHATSAPP: 'WhatsApp', INSTAGRAM: 'Instagram', MESSENGER: 'Messenger' };
 
 export default function ChatHeader({ onEditContact, onSearch }) {
-  const { activeConversation } = useStore();
+  const { activeConversation, removeConversation } = useStore();
   const [showMenu,   setShowMenu]   = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQ,    setSearchQ]    = useState('');
@@ -28,10 +28,14 @@ export default function ChatHeader({ onEditContact, onSearch }) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const handleDeleteChat = () => {
+  const handleDeleteChat = async () => {
     setShowMenu(false);
-    if (confirm(`¿Eliminar la conversación con ${name}? El contacto no se eliminará.`)) {
-      console.log('Eliminar conversación', activeConversation.id);
+    if (confirm(`¿Eliminar la conversación con ${name}?\nEl contacto no se eliminará.`)) {
+      try {
+        await removeConversation(activeConversation.id);
+      } catch {
+        alert('No se pudo eliminar la conversación. Intentá de nuevo.');
+      }
     }
   };
 

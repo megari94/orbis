@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getConversations, getConversation, getMessages, sendMessage as apiSendMessage, updateConversation } from '../services/api';
+import { getConversations, getConversation, getMessages, sendMessage as apiSendMessage, updateConversation, deleteConversation } from '../services/api';
 
 // ── Mapeo de valores entre backend y frontend ─────────────────────────────────
 const STATUS_FROM_API = { NEW: 'nuevo', OPEN: 'open', PENDING: 'pending', RESOLVED: 'done' };
@@ -212,6 +212,15 @@ const useStore = create((set, get) => ({
     try {
       await updateConversation(conv.id, { status: STATUS_TO_API[status] ?? status });
     } catch { /* sin backend — ok */ }
+  },
+
+  removeConversation: async (convId) => {
+    await deleteConversation(convId);
+    set(s => ({
+      conversations: s.conversations.filter(c => c.id !== convId),
+      activeConversation: s.activeConversation?.id === convId ? null : s.activeConversation,
+      messages: s.activeConversation?.id === convId ? [] : s.messages,
+    }));
   },
 
   setConvTag: (convId, label) => {

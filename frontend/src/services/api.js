@@ -39,9 +39,10 @@ export const registerApi = (body) => api.post('/auth/register', body).then(r => 
 export const getMeApi    = ()     => api.get('/auth/me').then(r => r.data);
 
 // ── Conversations ─────────────────────────────────────────────────────────────
-export const getConversations   = (params) => api.get('/conversations',          { params }).then(r => r.data);
-export const getConversation    = (id)     => api.get(`/conversations/${id}`).then(r => r.data);
-export const updateConversation = (id, data) => api.patch(`/conversations/${id}`, data).then(r => r.data);
+export const getConversations    = (params) => api.get('/conversations',           { params }).then(r => r.data);
+export const getConversation     = (id)     => api.get(`/conversations/${id}`).then(r => r.data);
+export const updateConversation  = (id, data) => api.patch(`/conversations/${id}`, data).then(r => r.data);
+export const deleteConversation  = (id)     => api.delete(`/conversations/${id}`).then(r => r.data);
 
 // ── Messages ──────────────────────────────────────────────────────────────────
 export const getMessages = (conversationId) =>
@@ -54,6 +55,7 @@ export const sendMessage = (conversationId, content, isInternal = false) =>
 export const getContacts    = ()          => api.get('/contacts').then(r => r.data);
 export const getContact     = (id)        => api.get(`/contacts/${id}`).then(r => r.data);
 export const updateContact  = (id, data)  => api.patch(`/contacts/${id}`, data).then(r => r.data);
+export const deleteContact  = (id)        => api.delete(`/contacts/${id}`).then(r => r.data);
 
 // ── User profile ─────────────────────────────────────────────────────────────
 export const updateProfileApi  = (data) => api.patch('/auth/profile',  data).then(r => r.data);

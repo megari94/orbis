@@ -29,6 +29,9 @@ let ContactsController = class ContactsController {
     update(tenantId, id, body) {
         return this.svc.update(tenantId, id, body);
     }
+    remove(tenantId, id) {
+        return this.svc.remove(tenantId, id);
+    }
 };
 exports.ContactsController = ContactsController;
 __decorate([
@@ -55,6 +58,14 @@ __decorate([
     __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", void 0)
 ], ContactsController.prototype, "update", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Headers)('x-tenant-id')),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], ContactsController.prototype, "remove", null);
 exports.ContactsController = ContactsController = __decorate([
     (0, swagger_1.ApiTags)('contacts'),
     (0, common_1.Controller)('contacts'),

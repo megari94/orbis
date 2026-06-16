@@ -46,6 +46,14 @@ let ConversationsService = class ConversationsService {
             data: dto,
         });
     }
+    async remove(tenantId, id) {
+        const conv = await this.prisma.conversation.findFirst({ where: { id, tenantId } });
+        if (!conv)
+            throw new common_1.NotFoundException('Conversation not found');
+        await this.prisma.message.deleteMany({ where: { conversationId: id } });
+        await this.prisma.conversation.delete({ where: { id } });
+        return { deleted: true };
+    }
 };
 exports.ConversationsService = ConversationsService;
 exports.ConversationsService = ConversationsService = __decorate([

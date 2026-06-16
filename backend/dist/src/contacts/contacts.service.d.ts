@@ -64,4 +64,7 @@ export declare class ContactsService {
         phone: string | null;
         location: string | null;
     }>;
+    remove(tenantId: string, id: string): Promise<{
+        deleted: boolean;
+    }>;
 }

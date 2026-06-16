@@ -30,6 +30,9 @@ let ConversationsController = class ConversationsController {
     update(tenantId, id, dto) {
         return this.svc.update(tenantId, id, dto);
     }
+    remove(tenantId, id) {
+        return this.svc.remove(tenantId, id);
+    }
 };
 exports.ConversationsController = ConversationsController;
 __decorate([
@@ -59,6 +62,14 @@ __decorate([
     __metadata("design:paramtypes", [String, String, update_conversation_dto_1.UpdateConversationDto]),
     __metadata("design:returntype", void 0)
 ], ConversationsController.prototype, "update", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Headers)('x-tenant-id')),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", void 0)
+], ConversationsController.prototype, "remove", null);
 exports.ConversationsController = ConversationsController = __decorate([
     (0, swagger_1.ApiTags)('conversations'),
     (0, common_1.Controller)('conversations'),

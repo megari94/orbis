@@ -76,4 +76,7 @@ export declare class ConversationsController {
         unreadCount: number;
         botHandedOff: boolean;
     }>;
+    remove(tenantId: string, id: string): Promise<{
+        deleted: boolean;
+    }>;
 }

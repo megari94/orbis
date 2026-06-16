@@ -45,6 +45,22 @@ let ContactsService = class ContactsService {
             },
         });
     }
+    async remove(tenantId, id) {
+        const contact = await this.prisma.contact.findFirst({
+            where: { id, tenantId },
+            include: { conversations: true },
+        });
+        if (!contact)
+            throw new common_1.NotFoundException('Contact not found');
+        const convIds = contact.conversations.map(c => c.id);
+        if (convIds.length > 0) {
+            await this.prisma.message.deleteMany({ where: { conversationId: { in: convIds } } });
+            await this.prisma.conversation.deleteMany({ where: { id: { in: convIds } } });
+        }
+        await this.prisma.contactChannel.deleteMany({ where: { contactId: id } });
+        await this.prisma.contact.delete({ where: { id } });
+        return { deleted: true };
+    }
 };
 exports.ContactsService = ContactsService;
 exports.ContactsService = ContactsService = __decorate([

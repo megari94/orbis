@@ -34,4 +34,23 @@ export class ContactsService {
       },
     });
   }
+
+  async remove(tenantId: string, id: string) {
+    const contact = await this.prisma.contact.findFirst({
+      where: { id, tenantId },
+      include: { conversations: true },
+    });
+    if (!contact) throw new NotFoundException('Contact not found');
+
+    // Borrar mensajes de todas sus conversaciones
+    const convIds = contact.conversations.map(c => c.id);
+    if (convIds.length > 0) {
+      await this.prisma.message.deleteMany({ where: { conversationId: { in: convIds } } });
+      await this.prisma.conversation.deleteMany({ where: { id: { in: convIds } } });
+    }
+    // Borrar canales vinculados y el contacto
+    await this.prisma.contactChannel.deleteMany({ where: { contactId: id } });
+    await this.prisma.contact.delete({ where: { id } });
+    return { deleted: true };
+  }
 }

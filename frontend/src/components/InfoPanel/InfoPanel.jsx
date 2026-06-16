@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import useStore from '../../store/useStore';
 import ContactModal from '../Contact/ContactModal';
+import { deleteContact } from '../../services/api';
 
 const AV_CLASS   = { WHATSAPP: 'av-wa', INSTAGRAM: 'av-ig', MESSENGER: 'av-fb' };
 const AV_ICON    = { WHATSAPP: 'fa-brands fa-whatsapp', INSTAGRAM: 'fa-brands fa-instagram', MESSENGER: 'fa-brands fa-facebook-messenger' };
@@ -16,7 +17,7 @@ function formatSince(iso) {
   return new Date(iso).toLocaleDateString('es-AR', { month: 'short', year: 'numeric' });
 }
 
-function ContactMenu({ contact, onEdit, onClose }) {
+function ContactMenu({ contact, onEdit, onDelete, onClose }) {
   const ref = useRef(null);
   useEffect(() => {
     const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
@@ -28,32 +29,49 @@ function ContactMenu({ contact, onEdit, onClose }) {
     <div ref={ref} style={{
       position: 'absolute', top: 28, right: 0, zIndex: 300,
       background: 'var(--bg2)', border: '1px solid var(--border2)',
-      borderRadius: 10, minWidth: 160, padding: '4px 0',
+      borderRadius: 10, minWidth: 180, padding: '4px 0',
       boxShadow: '0 8px 24px rgba(0,0,0,.5)',
     }}>
       <button
         onClick={() => { onEdit(contact); onClose(); }}
-        style={{
-          width: '100%', padding: '10px 14px', background: 'none', border: 'none',
-          color: 'var(--cream-dim)', fontSize: 13, cursor: 'pointer', textAlign: 'left',
-          display: 'flex', alignItems: 'center', gap: 10,
-        }}
+        style={{ width: '100%', padding: '10px 14px', background: 'none', border: 'none', color: 'var(--cream-dim)', fontSize: 13, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10 }}
         onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
         onMouseLeave={e => e.currentTarget.style.background = 'none'}
       >
         <i className="fa-solid fa-pen" style={{ width: 14, textAlign: 'center' }} />
         Editar contacto
       </button>
+      <button
+        onClick={() => { onDelete(contact); onClose(); }}
+        style={{ width: '100%', padding: '10px 14px', background: 'none', border: 'none', color: 'var(--red-light)', fontSize: 13, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10, borderTop: '1px solid var(--border)' }}
+        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'none'}
+      >
+        <i className="fa-solid fa-trash" style={{ width: 14, textAlign: 'center' }} />
+        Eliminar contacto
+      </button>
     </div>
   );
 }
 
 export default function InfoPanel() {
-  const { activeConversation } = useStore();
-  const [notes,      setNotes]      = useState([]);
-  const [noteText,   setNoteText]   = useState('');
-  const [showMenu,   setShowMenu]   = useState(false);
+  const { activeConversation, removeConversation, reset } = useStore();
+  const [notes,          setNotes]          = useState([]);
+  const [noteText,       setNoteText]       = useState('');
+  const [showMenu,       setShowMenu]       = useState(false);
   const [editingContact, setEditingContact] = useState(null);
+
+  const handleDeleteContact = async (contact) => {
+    if (!contact?.id) return;
+    if (!confirm(`¿Eliminar el contacto "${contact.name || contact.phone}"?\nSe eliminarán todas sus conversaciones y mensajes.`)) return;
+    try {
+      await deleteContact(contact.id);
+      // Limpiar conversación activa y lista
+      reset();
+    } catch {
+      alert('No se pudo eliminar el contacto. Intentá de nuevo.');
+    }
+  };
 
   if (!activeConversation) return null;
 
@@ -103,6 +121,7 @@ export default function InfoPanel() {
               <ContactMenu
                 contact={{ id: contact?.id, name, phone: contact?.phone, email: contact?.email, address: contact?.location }}
                 onEdit={setEditingContact}
+                onDelete={handleDeleteContact}
                 onClose={() => setShowMenu(false)}
               />
             )}

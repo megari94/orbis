@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { getContacts } from '../../services/api';
+import { getContacts, deleteContact } from '../../services/api';
 import ContactModal from '../Contact/ContactModal';
 
 const AV_CLASS  = { WHATSAPP: 'av-wa', INSTAGRAM: 'av-ig', MESSENGER: 'av-fb' };
 const AV_ICON   = { WHATSAPP: 'fa-brands fa-whatsapp', INSTAGRAM: 'fa-brands fa-instagram', MESSENGER: 'fa-brands fa-facebook-messenger' };
 
-function ContactMenu({ contact, onEdit, onClose }) {
+function ContactMenu({ contact, onEdit, onDelete, onClose }) {
   const ref = useRef(null);
   useEffect(() => {
     const h = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
@@ -22,16 +22,21 @@ function ContactMenu({ contact, onEdit, onClose }) {
     }}>
       <button
         onClick={() => { onEdit(contact); onClose(); }}
-        style={{
-          width: '100%', padding: '10px 14px', background: 'none', border: 'none',
-          color: 'var(--cream-dim)', fontSize: 13, cursor: 'pointer', textAlign: 'left',
-          display: 'flex', alignItems: 'center', gap: 10,
-        }}
+        style={{ width: '100%', padding: '10px 14px', background: 'none', border: 'none', color: 'var(--cream-dim)', fontSize: 13, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10 }}
         onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
         onMouseLeave={e => e.currentTarget.style.background = 'none'}
       >
         <i className="fa-solid fa-pen" style={{ width: 14, textAlign: 'center' }} />
         Editar contacto
+      </button>
+      <button
+        onClick={() => { onDelete(contact); onClose(); }}
+        style={{ width: '100%', padding: '10px 14px', background: 'none', border: 'none', color: 'var(--red-light)', fontSize: 13, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10, borderTop: '1px solid var(--border)' }}
+        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'none'}
+      >
+        <i className="fa-solid fa-trash" style={{ width: 14, textAlign: 'center' }} />
+        Eliminar contacto
       </button>
     </div>
   );
@@ -57,6 +62,16 @@ export default function ContactsList() {
   const onSaved = (updated) => {
     setContacts(cs => cs.map(c => c.id === updated.id ? { ...c, ...updated } : c));
     setEditing(null);
+  };
+
+  const onDelete = async (contact) => {
+    if (!confirm(`¿Eliminar el contacto "${contact.name || contact.phone}"?\nSe eliminarán todas sus conversaciones y mensajes.`)) return;
+    try {
+      await deleteContact(contact.id);
+      setContacts(cs => cs.filter(c => c.id !== contact.id));
+    } catch {
+      alert('No se pudo eliminar el contacto. Intentá de nuevo.');
+    }
   };
 
   const filtered = contacts.filter(c =>
@@ -142,6 +157,7 @@ export default function ContactsList() {
                 <ContactMenu
                   contact={c}
                   onEdit={setEditing}
+                  onDelete={onDelete}
                   onClose={() => setMenuId(null)}
                 />
               )}

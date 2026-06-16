@@ -35,4 +35,13 @@ export class ConversationsService {
       data: dto,
     });
   }
+
+  async remove(tenantId: string, id: string) {
+    const conv = await this.prisma.conversation.findFirst({ where: { id, tenantId } });
+    if (!conv) throw new NotFoundException('Conversation not found');
+    // Borrar mensajes primero, luego la conversación (contacto se conserva)
+    await this.prisma.message.deleteMany({ where: { conversationId: id } });
+    await this.prisma.conversation.delete({ where: { id } });
+    return { deleted: true };
+  }
 }
