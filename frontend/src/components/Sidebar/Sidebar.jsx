@@ -47,6 +47,7 @@ function useSidebarResize() {
 }
 
 const CHANNEL_CLASS = { WHATSAPP: 'av-wa', INSTAGRAM: 'av-ig', MESSENGER: 'av-fb' };
+const CHANNEL_ICON  = { WHATSAPP: 'fa-brands fa-whatsapp', INSTAGRAM: 'fa-brands fa-instagram', MESSENGER: 'fa-brands fa-facebook-messenger' };
 const BADGE_CLASS   = { WHATSAPP: 'ch-wa', INSTAGRAM: 'ch-ig', MESSENGER: 'ch-fb' };
 const BADGE_LABEL   = { WHATSAPP: 'WhatsApp', INSTAGRAM: 'Instagram', MESSENGER: 'Messenger' };
 
@@ -254,6 +255,9 @@ export default function Sidebar() {
               onClick={() => selectConversation(conv)}
               style={{ position: 'relative' }}
             >
+              <div className={`av ${CHANNEL_CLASS[conv.channel] || 'av-mul'}`}>
+                <i className={CHANNEL_ICON[conv.channel] || 'fa-solid fa-comment'} />
+              </div>
               <div className="conv-body">
                 <div className="conv-row1">
                   <span className="conv-name">{conv.name}</span>
