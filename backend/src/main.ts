@@ -20,12 +20,14 @@ async function bootstrap() {
 
   const allowedOrigins = [
     process.env.FRONTEND_URL,
-    /^http:\/\/localhost(:\d+)?$/,
+    process.env.RENDER_EXTERNAL_URL, // URL pública del servicio en Render
+    /^https?:\/\/localhost(:\d+)?$/,
+    /^https:\/\/.*\.onrender\.com$/,  // cualquier subdominio de onrender.com
   ].filter(Boolean);
 
   app.enableCors({
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // Postman / curl
+      if (!origin) return callback(null, true); // Postman / curl / mismo origen
       const allowed = allowedOrigins.some(o =>
         typeof o === 'string' ? o === origin : (o as RegExp).test(origin)
       );
